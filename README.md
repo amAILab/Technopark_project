@@ -8,7 +8,7 @@
 
 Откройте `index.html` в браузере. Сайт уже подключен к таблице:
 
-`https://docs.google.com/spreadsheets/d/1cNN4cPE1F1dlewJCelJPGUR5EkYUmQyJGb_BOKN4n60/edit?gid=1786152560`
+`https://docs.google.com/spreadsheets/d/1cNN4cPE1F1dlewJCelJPGUR5EkYUmQyJGb_BOKN4n60/edit?gid=150570752`
 
 ## Показ руководству
 
