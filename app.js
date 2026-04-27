@@ -733,15 +733,172 @@ function throttle(func, limit = 100) {
   };
 }
 
+/* 46-55. НОВЫЕ УЛУЧШЕНИЯ: JS функции для поддержки новых CSS стилей */
+
+/* 46. УЛУЧШЕНИЕ: Show save indicator */
+function showSaveIndicator(element, duration = 2000) {
+  const indicator = document.createElement("div");
+  indicator.className = "save-indicator";
+  indicator.textContent = "Сохранено";
+  element.appendChild(indicator);
+  setTimeout(() => indicator.remove(), duration);
+}
+
+/* 47. УЛУЧШЕНИЕ: Toggle chip selection */
+function setupChipSelection() {
+  document.querySelectorAll(".chip").forEach((chip) => {
+    chip.addEventListener("click", (e) => {
+      if (e.target.textContent === "×") {
+        chip.remove();
+      } else {
+        chip.classList.toggle("is-selected");
+      }
+    });
+  });
+}
+
+/* 48. УЛУЧШЕНИЕ: Setup progress steps */
+function updateProgressStep(stepNumber) {
+  document.querySelectorAll(".progress-step").forEach((step, index) => {
+    step.classList.remove("is-active", "is-completed");
+    if (index + 1 <= stepNumber) {
+      if (index + 1 === stepNumber) {
+        step.classList.add("is-active");
+      } else {
+        step.classList.add("is-completed");
+      }
+    }
+  });
+}
+
+/* 49. УЛУЧШЕНИЕ: Setup tabs navigation */
+function setupTabs() {
+  document.querySelectorAll(".tabs").forEach((tabsContainer) => {
+    const tabs = tabsContainer.querySelectorAll(".tab");
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((t) => t.classList.remove("is-active"));
+        tab.classList.add("is-active");
+        const contentId = tab.getAttribute("data-tab");
+        if (contentId) {
+          document.querySelectorAll(`[data-tab-content]`).forEach((content) => {
+            content.style.display = content.getAttribute("data-tab-content") === contentId ? "block" : "none";
+          });
+        }
+      });
+    });
+  });
+}
+
+/* 50. УЛУЧШЕНИЕ: Setup pagination */
+function setupPagination() {
+  const paginationButtons = document.querySelectorAll(".pagination button, .pagination a");
+  paginationButtons.forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      paginationButtons.forEach((b) => b.classList.remove("is-active"));
+      this.classList.add("is-active");
+    });
+  });
+}
+
+/* 51. УЛУЧШЕНИЕ: Show loading spinner */
+function showLoadingSpinner(container) {
+  const spinner = document.createElement("div");
+  spinner.className = "spinner";
+  spinner.style.cssText = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);";
+  const parent = container.parentElement;
+  parent.style.position = "relative";
+  parent.appendChild(spinner);
+  return spinner;
+}
+
+/* 52. УЛУЧШЕНИЕ: Setup form validation with feedback */
+function setupFormValidation() {
+  document.querySelectorAll("form").forEach((form) => {
+    form.addEventListener("submit", function (e) {
+      const inputs = this.querySelectorAll("input[required], textarea[required]");
+      let isValid = true;
+      inputs.forEach((input) => {
+        if (!input.value.trim()) {
+          input.classList.add("is-invalid");
+          isValid = false;
+        } else {
+          input.classList.remove("is-invalid");
+        }
+      });
+      if (!isValid) e.preventDefault();
+    });
+  });
+}
+
+/* 53. УЛУЧШЕНИЕ: Enhanced search with glow */
+function enhanceSearchInput() {
+  const searchInput = document.getElementById("searchInput");
+  if (!searchInput) return;
+  searchInput.addEventListener("focus", () => {
+    searchInput.style.animation = "searchGlow 1.5s ease-out";
+  });
+}
+
+/* 54. УЛУЧШЕНИЕ: Undo/Redo stack */
+const undoRedoStack = {
+  past: [],
+  present: null,
+  future: [],
+  
+  saveState(state) {
+    this.past.push(this.present);
+    this.present = state;
+    this.future = [];
+  },
+  
+  undo() {
+    if (this.past.length === 0) return null;
+    this.future.push(this.present);
+    this.present = this.past.pop();
+    return this.present;
+  },
+  
+  redo() {
+    if (this.future.length === 0) return null;
+    this.past.push(this.present);
+    this.present = this.future.pop();
+    return this.present;
+  }
+};
+
+/* 55. УЛУЧШЕНИЕ: Keyboard shortcuts registration */
+function setupKeyboardShortcuts() {
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        const undoState = undoRedoStack.undo();
+        if (undoState) announceToScreenReader("Действие отменено");
+      } else if ((e.key === "z" && e.shiftKey) || (e.key === "y")) {
+        e.preventDefault();
+        const redoState = undoRedoStack.redo();
+        if (redoState) announceToScreenReader("Действие повторено");
+      }
+    }
+  });
+}
+
 setupNavigation();
 setupScrollShadow();
 setupEvents();
 
-// Инициализация новых улучшений
+// Инициализация новых улучшений (46-55)
 enhanceKeyboardNavigation();
 enhanceScrollRestoration();
 enhanceFocusManagement();
 respectReducedMotion();
+setupChipSelection();
+setupTabs();
+setupPagination();
+setupFormValidation();
+enhanceSearchInput();
+setupKeyboardShortcuts();
 setupAutoRefresh();
 
 loadAllData();

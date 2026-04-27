@@ -854,6 +854,227 @@ tr.is-critical td:first-child { box-shadow: inset 4px 0 0 var(--red); }
   background: #fbfdff;
 }
 
+/* 55. УЛУЧШЕНИЕ: Визуальный feedback при сохранении (checkmark animation) */
+@keyframes checkmark {
+  0% { content: '⋮'; opacity: 0; transform: scale(0); }
+  50% { opacity: 1; }
+  100% { content: '✓'; transform: scale(1); }
+}
+.save-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.1);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+  animation: slideIn 0.3s ease;
+}
+.save-indicator::before {
+  content: '✓';
+  display: inline-block;
+  animation: checkmark 0.6s ease;
+}
+
+/* 56. УЛУЧШЕНИЕ: Лучшая визуализация disabled состояния */
+button:disabled, input:disabled, select:disabled, textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+button:disabled { background: var(--surface-soft); }
+
+/* 57. УЛУЧШЕНИЕ: Улучшенные состояния loading с spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(37, 99, 235, 0.2);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* 58. УЛУЧШЕНИЕ: Transition для смены содержимого (fade in/out) */
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-in { animation: fadeInSlideUp 0.4s ease; }
+
+/* 59. УЛУЧШЕНИЕ: Улучшенный контраст для кнопок отмены */
+.button.secondary {
+  background: var(--surface-soft);
+  color: var(--text);
+  border-color: var(--line);
+}
+.button.secondary:hover {
+  background: #e2e8f0;
+  border-color: var(--line-strong);
+}
+
+/* 60. УЛУЧШЕНИЕ: Улучшенная animation для поиска (pulse при активности) */
+@keyframes searchGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0); }
+}
+#searchInput:focus {
+  animation: searchGlow 1.5s ease-out;
+}
+
+/* 61. УЛУЧШЕНИЕ: Улучшенные pagination styles */
+.pagination {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+.pagination button, .pagination a {
+  min-width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.pagination button:hover, .pagination a:hover {
+  background: var(--surface-soft);
+  border-color: var(--blue);
+}
+.pagination .is-active {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+/* 62. УЛУЧШЕНИЕ: Chip/tag styles с hover эффектом */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.chip:hover {
+  border-color: var(--blue);
+  background: var(--surface-blue);
+}
+.chip.is-selected {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+.chip::after {
+  content: '×';
+  cursor: pointer;
+  opacity: 0.6;
+}
+.chip::after:hover { opacity: 1; }
+
+/* 63. УЛУЧШЕНИЕ: Progress step indicator */
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  position: relative;
+}
+.progress-steps::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--line);
+  z-index: 0;
+}
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+.progress-step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--muted);
+  transition: all 0.3s ease;
+}
+.progress-step.is-active .progress-step-circle {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+}
+.progress-step.is-completed .progress-step-circle {
+  background: var(--green);
+  border-color: var(--green);
+  color: white;
+}
+.progress-step-label {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* 64. УЛУЧШЕНИЕ: Улучшенные tabs с underline indicator */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--line);
+  margin-bottom: 20px;
+}
+.tab {
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 700;
+  position: relative;
+  transition: color 0.2s ease;
+}
+.tab:hover { color: var(--text); }
+.tab.is-active {
+  color: var(--blue);
+}
+.tab.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--blue);
+}
+
 @media (max-width: 1180px) {
   .top-shell { grid-template-columns: 1fr auto; }
   .main-nav, .header-actions { display: none; }
