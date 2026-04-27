@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Технопарк РГСУ - проекты и гранты</title>
-    <meta name="description" content="Рабочая панель Технопарка РГСУ для управления проектами, грантовыми окнами, дедлайнами и заявками.">
+    <title>Технопарк РГСУ - панель руководителя</title>
+    <meta name="description" content="Панель руководителя Технопарка РГСУ для управления проектами, грантовыми окнами, дедлайнами, решениями НТС и заявками.">
     <meta name="theme-color" content="#0d533f">
     <meta property="og:title" content="Технопарк РГСУ">
-    <meta property="og:description" content="Проекты, дедлайны и грантовая воронка технопарка.">
+    <meta property="og:description" content="Панель руководителя: проекты, дедлайны, грантовая воронка и решения НТС.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/ru/archive/4/42/20240520114700%21%D0%A0%D0%93%D0%A1%D0%A3_%D0%BB%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF.png">
     <link rel="preconnect" href="https://upload.wikimedia.org">
@@ -21,7 +21,7 @@
         <img src="https://upload.wikimedia.org/wikipedia/ru/archive/4/42/20240520114700%21%D0%A0%D0%93%D0%A1%D0%A3_%D0%BB%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF.png" alt="Логотип РГСУ">
         <span>
           <strong>Технопарк РГСУ</strong>
-          <small>портфель проектов</small>
+          <small>панель руководителя</small>
         </span>
       </a>
 
@@ -53,7 +53,7 @@
       <section class="topbar" aria-label="Рабочая панель">
         <div>
           <span class="topbar-kicker">Проектный центр</span>
-          <h1 id="currentSectionTitle">Обзор</h1>
+          <h1 id="currentSectionTitle">Панель руководителя</h1>
         </div>
         <label class="topbar-search">
           <span>Поиск</span>
@@ -69,8 +69,8 @@
       <section class="workspace-head" aria-labelledby="pageTitle">
         <div>
           <p class="eyebrow">Грантовый офис</p>
-          <h1 id="pageTitle">Портфель проектов и грантовые решения</h1>
-          <p class="lead">Короткая управленческая картина: что готово к подаче, где нужны решения руководства и какие дедлайны нельзя пропустить.</p>
+          <h1 id="pageTitle">Панель руководителя проектов и грантов</h1>
+          <p class="lead">Короткая управленческая картина: что готово к подаче, где нужны решения руководства, какие блокеры мешают заявкам и какие дедлайны нельзя пропустить.</p>
         </div>
         <section class="panel">
           <div class="panel-head">
@@ -212,11 +212,34 @@
         <section class="executive-panel" aria-labelledby="executiveTitle">
           <div class="panel-head compact-head">
             <div>
-              <h2 id="executiveTitle">Сводка для проректора</h2>
-              <p>Автоматически собирается из реестра, грантовых маршрутов и пакета подачи.</p>
+              <h2 id="executiveTitle">Сводка для руководителя</h2>
+              <p>Автоматически собирается из реестра, грантовых маршрутов, пакета подачи и решений НТС.</p>
             </div>
           </div>
           <div class="executive-grid" id="executiveSummary"></div>
+        </section>
+
+        <section class="decision-grid" aria-label="Быстрые управленческие решения">
+          <article class="decision-card decision-red">
+            <span>1</span>
+            <h3>Срочно на подачу</h3>
+            <p>Проекты с ближайшим дедлайном и высокой готовностью. Сначала закрываем паспорт, смету и письма.</p>
+          </article>
+          <article class="decision-card decision-amber">
+            <span>2</span>
+            <h3>Нужны письма партнеров</h3>
+            <p>Без подтверждения пилотной площадки и заказчика грантовая заявка выглядит слабее.</p>
+          </article>
+          <article class="decision-card decision-green">
+            <span>3</span>
+            <h3>Нужна смета</h3>
+            <p>Финансовый контур должен быть готов до презентации, чтобы команда не теряла окно подачи.</p>
+          </article>
+          <article class="decision-card decision-blue">
+            <span>4</span>
+            <h3>Решение руководства</h3>
+            <p>Выбор приоритетных заявок, ответственных и закрытых проектов для внутреннего контура.</p>
+          </article>
         </section>
 
         <div class="dashboard-grid">
@@ -235,7 +258,7 @@
             <div class="panel-head">
               <div>
                 <h2>Что требует внимания</h2>
-                <p>Проекты без гранта, даты или следующего шага.</p>
+                <p>Проекты без гранта, даты, следующего шага, сметы или письма пилотной площадки.</p>
               </div>
             </div>
             <div class="action-list" id="actionList"></div>
@@ -263,6 +286,41 @@
             <div class="leadership-list" id="leadershipActions"></div>
           </section>
         </div>
+
+        <div class="dashboard-grid lower-dashboard">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Что сделать за 7 дней</h2>
+                <p>Короткий план упаковки портфеля перед ближайшими грантовыми окнами.</p>
+              </div>
+            </div>
+            <div class="leadership-list static-plan">
+              <div class="leadership-item"><span class="leadership-number">1</span><div><strong>Отобрать 5 проектов класса A</strong><small>Сфокусировать команду на заявках с быстрым эффектом и понятным результатом.</small></div></div>
+              <div class="leadership-item"><span class="leadership-number">2</span><div><strong>Закрыть паспорт на 1 страницу</strong><small>Проблема, решение, команда, результат, бюджет, пилотная площадка.</small></div></div>
+              <div class="leadership-item"><span class="leadership-number">3</span><div><strong>Собрать письма пилотов</strong><small>Подтверждение интереса от партнеров, лабораторий, заказчиков или площадок внедрения.</small></div></div>
+              <div class="leadership-item"><span class="leadership-number">4</span><div><strong>Подготовить презентацию 7-10 слайдов</strong><small>Один шаблон для НТС, грантов, партнеров и руководства.</small></div></div>
+              <div class="leadership-item"><span class="leadership-number">5</span><div><strong>Проверить юридический контур</strong><small>Отделить публичные проекты от закрытых, контрактных и чувствительных направлений.</small></div></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Грантовый радар</h2>
+                <p>Быстрая навигация по окнам: срочность, подходящие проекты и первый документ.</p>
+              </div>
+              <button class="text-action" data-jump="grants" type="button">Открыть воронку</button>
+            </div>
+            <div class="leadership-list static-plan">
+              <div class="leadership-item"><span class="leadership-number">!</span><div><strong>Новатор Москвы</strong><small>Проверить дедлайн, выбрать самые зрелые городские и технологические проекты.</small></div></div>
+              <div class="leadership-item"><span class="leadership-number">Ф</span><div><strong>ФСИ: Старт / Старт-Пром</strong><small>Подходят MVP, прототипы, инженерные и ИИ-проекты с коммерциализацией.</small></div></div>
+              <div class="leadership-item"><span class="leadership-number">Р</span><div><strong>РНФ и научные конкурсы</strong><small>Нужны научная группа, публикационная база, методология и план исследований.</small></div></div>
+              <div class="leadership-item"><span class="leadership-number">К</span><div><strong>ПФКИ / Росмолодежь / Движение Первых</strong><small>Подходят социальные, культурные, образовательные и молодежные проекты.</small></div></div>
+            </div>
+          </section>
+        </div>
+
         <section class="panel nts-preview-panel">
           <div class="panel-head">
             <div>
@@ -280,7 +338,7 @@
           <div class="panel-head">
             <div>
               <h2 id="projectsTitle">Реестр проектов</h2>
-              <p>Сортировка по ближайшему дедлайну. Строки с риском подсвечены.</p>
+              <p>Сортировка по ближайшему дедлайну. Строки с риском подсвечены. Клик по проекту открывает мини-паспорт.</p>
             </div>
             <div class="panel-actions">
               <button class="text-action" id="exportCsv" type="button">Экспорт CSV</button>
@@ -328,7 +386,7 @@
           <div class="panel-head">
             <div>
               <h2 id="packageTitle">Пакет подачи</h2>
-              <p>Паспорт, MVP, пилот, смета и презентация по проектам из актуальной таблицы.</p>
+              <p>Паспорт, MVP, пилот, смета, презентация и юрконтур по проектам из актуальной таблицы.</p>
             </div>
           </div>
           <div class="section-insights" id="packageSummary"></div>
