@@ -1,7 +1,10 @@
 const CONFIG = {
   SHEET_ID: '1cNN4cPE1F1dlewJCelJPGUR5EkYUmQyJGb_BOKN4n60',
   CONFIRM_CODE: '11111111',
+  FORM_KEY: 'NTS_TECHNOPARK_2026',
   HEADER_ROW: 4,
+  NTS_HEADER_ROW: 4,
+  NTS_FIRST_DATA_ROW: 5,
   SHEETS: {
     projects: 'Реестр проектов',
     grants: 'Актуальные гранты',
@@ -29,10 +32,18 @@ function doGet(e) {
 function doPost(e) {
   try {
     const payload = JSON.parse((e.postData && e.postData.contents) || '{}');
-    if (String(payload.confirmCode || '') !== CONFIG.CONFIRM_CODE) {
+    const isProjectAction = ['add_project', 'update_project', 'add_package_row', 'update_package', 'update_nts_feedback_status'].indexOf(payload.action) >= 0;
+    const isNtsForm = payload.action === 'add_nts_feedback' || payload.formKey === CONFIG.FORM_KEY;
+
+    if (isProjectAction && String(payload.confirmCode || '') !== CONFIG.CONFIRM_CODE) {
       return json_({ ok: false, error: 'Неверный код подтверждения' });
     }
-    const action = payload.action || '';
+
+    if (isNtsForm && String(payload.confirmCode || '') !== CONFIG.CONFIRM_CODE && String(payload.formKey || '') !== CONFIG.FORM_KEY) {
+      return json_({ ok: false, error: 'Неверный ключ формы НТС' });
+    }
+
+    const action = payload.action || (isNtsForm ? 'add_nts_feedback' : '');
     if (action === 'add_project') return json_(addProject_(payload));
     if (action === 'update_project') return json_(updateProject_(payload));
     if (action === 'add_package_row') return json_(addPackageRow_(payload));
@@ -53,6 +64,7 @@ function setupSheets() {
     actions.appendRow(['Дата', 'Действие', 'ID', 'Проект', 'Статус', 'Следующее действие', 'Пользователь']);
     actions.setFrozenRows(1);
   }
+  ensureNtsFeedbackSheet_();
   return 'Готово';
 }
 
@@ -272,60 +284,124 @@ function ensureNtsFeedbackSheet_() {
   const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
   let sheet = ss.getSheetByName(CONFIG.SHEETS.ntsFeedback);
   if (!sheet) sheet = ss.insertSheet(CONFIG.SHEETS.ntsFeedback);
-  const headers = ['Дата и время', 'Автор', 'Роль', 'Проект', 'Категория', 'Приоритет', 'Текст пожелания', 'Статус рассмотрения', 'Ответ / комментарий руководителя', 'Источник'];
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(headers);
-  } else {
-    const existing = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
-    const empty = existing.every(value => !value);
-    if (empty) sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  }
+
+  const headers = getNtsHeaders_();
+  sheet.getRange(1, 1).setValue('Пожелания НТС');
+  sheet.getRange(2, 1).setValue('Лист для автоматического сбора предложений, замечаний и решений членов Научно-технического совета через сайт Технопарка РГСУ.');
+  sheet.getRange(CONFIG.NTS_HEADER_ROW, 1, 1, headers.length).setValues([headers]);
+  sheet.setFrozenRows(CONFIG.NTS_HEADER_ROW);
+  sheet.getRange(CONFIG.NTS_HEADER_ROW, 1, 1, headers.length).setFontWeight('bold').setBackground('#e8eefc');
   return sheet;
+}
+
+function getNtsHeaders_() {
+  return [
+    'ID',
+    'Дата и время',
+    'ФИО / автор',
+    'Роль / организация',
+    'Контакт',
+    'Тип обращения',
+    'Связанный проект',
+    'Раздел сайта',
+    'Приоритет',
+    'Текст пожелания',
+    'Предложенное решение',
+    'Статус',
+    'Ответственный',
+    'Комментарий руководителя',
+    'Источник',
+    'UserAgent',
+    'IP/тех.метка',
+    'Служебный ключ'
+  ];
 }
 
 function addNtsFeedback_(payload) {
   if (!payload.author) throw new Error('Укажите автора пожелания');
   if (!payload.message) throw new Error('Укажите текст пожелания');
-  const sheet = ensureNtsFeedbackSheet_();
-  sheet.appendRow([
-    new Date(),
-    payload.author || '',
-    payload.role || '',
-    payload.project || payload.projectName || '',
-    payload.category || 'Другое',
-    payload.priority || 'Средний',
-    payload.message || '',
-    payload.status || 'Новое',
-    payload.response || '',
-    payload.source || 'site'
-  ]);
-  return { ok: true, success: true };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const sheet = ensureNtsFeedbackSheet_();
+    const row = nextNtsFeedbackRow_(sheet);
+    const id = payload.id || makeNtsId_();
+    const values = [
+      id,
+      new Date(),
+      payload.author || '',
+      payload.role || '',
+      payload.contact || '',
+      payload.type || payload.category || 'Идея',
+      payload.project || payload.projectName || '',
+      payload.section || 'Пожелания НТС',
+      payload.priority || 'Средний',
+      payload.message || '',
+      payload.solution || '',
+      payload.status || 'Новое',
+      payload.responsible || payload.responseOwner || '',
+      payload.comment || payload.response || '',
+      payload.source || 'site',
+      payload.userAgent || '',
+      payload.clientMark || payload.ip || '',
+      payload.formKey || ''
+    ];
+    sheet.getRange(row, 1, 1, values.length).setValues([values]);
+    logAction_('Добавлено пожелание НТС', id, payload.project || payload.projectName || '', payload.status || 'Новое', payload.message || '');
+    return { ok: true, success: true, id, row };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function nextNtsFeedbackRow_(sheet) {
+  const first = CONFIG.NTS_FIRST_DATA_ROW;
+  const maxRows = Math.max(sheet.getMaxRows(), first);
+  const rowCount = maxRows - first + 1;
+  const values = sheet.getRange(first, 1, rowCount, 10).getValues();
+  for (let i = 0; i < values.length; i++) {
+    const id = values[i][0];
+    const author = values[i][2];
+    const message = values[i][9];
+    if (!id && !author && !message) return first + i;
+  }
+  sheet.insertRowsAfter(maxRows, 100);
+  return maxRows + 1;
 }
 
 function listNtsFeedback_(params) {
   const sheet = ensureNtsFeedbackSheet_();
   const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return [];
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const rows = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
+  const first = CONFIG.NTS_FIRST_DATA_ROW;
+  if (lastRow < first) return [];
+  const headers = getNtsHeaders_();
+  const rowCount = lastRow - first + 1;
+  const rows = sheet.getRange(first, 1, rowCount, headers.length).getValues();
   const projectFilter = String(params.projectName || params.project || '').trim().toLowerCase();
+
   return rows.map((row, index) => {
     const item = {};
     headers.forEach((header, col) => item[header] = row[col]);
     return {
-      id: String(index + 2),
+      id: String(item['ID'] || first + index),
+      rowId: String(first + index),
       createdAt: item['Дата и время'] instanceof Date ? item['Дата и время'].toISOString() : String(item['Дата и время'] || ''),
-      author: item['Автор'] || '',
-      role: item['Роль'] || '',
-      project: item['Проект'] || '',
-      category: item['Категория'] || '',
+      author: item['ФИО / автор'] || '',
+      role: item['Роль / организация'] || '',
+      contact: item['Контакт'] || '',
+      project: item['Связанный проект'] || '',
+      category: item['Тип обращения'] || '',
       priority: item['Приоритет'] || '',
       message: item['Текст пожелания'] || '',
-      status: item['Статус рассмотрения'] || 'Новое',
-      response: item['Ответ / комментарий руководителя'] || '',
+      solution: item['Предложенное решение'] || '',
+      status: item['Статус'] || 'Новое',
+      responsible: item['Ответственный'] || '',
+      response: item['Комментарий руководителя'] || '',
       source: item['Источник'] || ''
     };
-  }).filter(item => !projectFilter || String(item.project || '').toLowerCase() === projectFilter)
+  }).filter(item => item.author || item.message)
+    .filter(item => !projectFilter || String(item.project || '').toLowerCase() === projectFilter)
     .reverse()
     .slice(0, Number(params.limit || 100));
 }
@@ -334,12 +410,14 @@ function updateNtsFeedbackStatus_(payload) {
   if (!payload.rowId) throw new Error('Не указан rowId');
   const sheet = ensureNtsFeedbackSheet_();
   const row = Number(payload.rowId);
-  if (!row || row < 2) throw new Error('Некорректный rowId');
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const statusCol = headers.indexOf('Статус рассмотрения') + 1;
-  const responseCol = headers.indexOf('Ответ / комментарий руководителя') + 1;
+  if (!row || row < CONFIG.NTS_FIRST_DATA_ROW) throw new Error('Некорректный rowId');
+  const headers = getNtsHeaders_();
+  const statusCol = headers.indexOf('Статус') + 1;
+  const responseCol = headers.indexOf('Комментарий руководителя') + 1;
+  const responsibleCol = headers.indexOf('Ответственный') + 1;
   if (statusCol && payload.status !== undefined) sheet.getRange(row, statusCol).setValue(payload.status);
   if (responseCol && payload.response !== undefined) sheet.getRange(row, responseCol).setValue(payload.response);
+  if (responsibleCol && payload.responsible !== undefined) sheet.getRange(row, responsibleCol).setValue(payload.responsible);
   return { ok: true, rowId: row };
 }
 
@@ -397,6 +475,10 @@ function toIso_(value) {
 
 function makeId_() {
   return 'ТП-2026-' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'HHmmss');
+}
+
+function makeNtsId_() {
+  return 'NTS-' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd-HHmmss') + '-' + Math.floor(Math.random() * 9000 + 1000);
 }
 
 function logAction_(action, id, project, status, nextAction) {
