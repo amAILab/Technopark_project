@@ -1,12 +1,14 @@
-# Технопарк РГСУ: проекты и гранты
+# Технопарк РГСУ: проекты и гранты (версия v3)
 
 Готовый статический dashboard для управления проектами технопарка: чтение Google Таблицы, добавление проектов через Apps Script, фильтры, реестр, грантовая воронка, пакет подачи и список ближайших действий.
+
+Версия v3 включает обновленный лист проектов (gid=1786152560) для устойчивого чтения данных.
 
 ## Запуск
 
 Откройте `index.html` в браузере. Сайт уже подключен к таблице:
 
-`https://docs.google.com/spreadsheets/d/1cNN4cPE1F1dlewJCelJPGUR5EkYUmQyJGb_BOKN4n60/edit?gid=969711980`
+`https://docs.google.com/spreadsheets/d/1cNN4cPE1F1dlewJCelJPGUR5EkYUmQyJGb_BOKN4n60/edit?gid=1786152560`
 
 ## Показ руководству
 
@@ -32,7 +34,7 @@
 
 URL Apps Script уже добавлен в `app.js` как стандартный адрес:
 
-`https://script.google.com/macros/s/AKfycbzTl0x-ygpETmGhnwkK0CTt0SIbeOBgM0OjhAsbK05pKkIu9UO5EUUjiYFq0V_AWxk/exec`
+`https://script.google.com/macros/s/AKfycbwzbWEjEpb1ySylb--7VhqEHvaC05WB5jhcw-8xpAj811bIJurVB3CW-ElDsoeKnWOA/exec`
 
 Для защиты от случайных изменений форма требует код подтверждения `11111111`. Этот же код проверяется в `google-apps-script.gs`, поэтому после обновления скрипта нужно заново развернуть Apps Script.
 

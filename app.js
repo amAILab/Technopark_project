@@ -1,160 +1,90 @@
-const SHEET = {
-  id: "1cNN4cPE1F1dlewJCelJPGUR5EkYUmQyJGb_BOKN4n60",
-  gid: "969711980",
+/*
+  Панель руководителя Технопарка РГСУ
+  Версия v3: устойчивое чтение обновленного листа проектов gid=1786152560.
+  Код специально оставлен на чистом JavaScript, чтобы сайт работал на GitHub Pages без сборки.
+*/
+
+const CONFIG = {
+  sheetId: "1cNN4cPE1F1dlewJCelJPGUR5EkYUmQyJGb_BOKN4n60",
+  sheets: {
+    // Новый лист, который был изменен в Google Таблице.
+    projects: "1786152560",
+    // Лист с грантовыми окнами оставлен прежним.
+    grants: "1500721586",
+    // Лист пожеланий НТС.
+    nts: "202604270",
+  },
+  sheetUrl: "https://docs.google.com/spreadsheets/d/1cNN4cPE1F1dlewJCelJPGUR5EkYUmQyJGb_BOKN4n60/edit",
+  scriptUrl: "https://script.google.com/macros/s/AKfycbwzbWEjEpb1ySylb--7VhqEHvaC05WB5jhcw-8xpAj811bIJurVB3CW-ElDsoeKnWOA/exec",
+  formKey: "NTS_TECHNOPARK_2026",
+  juneStart: "2026-06-01",
 };
 
-const SHEETS = {
-  dashboard: "969711980",
-  projects: "150570752",
-  grants: "1500721586",
-  packages: "341683209",
-};
-
-const DEFAULT_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbzTl0x-ygpETmGhnwkK0CTt0SIbeOBgM0OjhAsbK05pKkIu9UO5EUUjiYFq0V_AWxk/exec";
-const CONFIRM_CODE = "11111111";
-const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET.id}/gviz/tq`;
-const STORAGE_KEY = "rgsu-technopark-projects";
-const SCRIPT_URL_KEY = "rgsu-technopark-script-url";
-const DATA_CACHE_KEY = "rgsu-technopark-data-cache";
-const FILTER_PRESETS_KEY = "rgsu-technopark-filter-presets";
-const NTS_FEEDBACK_KEY = "rgsu-technopark-nts-feedback";
-const STATUSES = ["Идея", "Прототип", "Пилот", "Готов к гранту", "Подан"];
-
-const fallbackProjects = [
-  {
-    name: "AI-наставник для студенческих команд",
-    owner: "Лаборатория ИИ",
-    status: "Прототип",
-    readiness: 65,
-    grant: "Старт-ИИ",
-    deadline: "2026-05-22",
-    budget: "4 000 000 ₽",
-    nextStep: "Собрать метрики пилота и письмо индустриального партнера",
-  },
-  {
-    name: "VR-тренажер социальной реабилитации",
-    owner: "Центр иммерсивных технологий",
-    status: "Готов к гранту",
-    readiness: 88,
-    grant: "Фонд содействия инновациям",
-    deadline: "2026-05-10",
-    budget: "3 500 000 ₽",
-    nextStep: "Проверить смету и финальный пакет приложений",
-  },
-  {
-    name: "Платформа мониторинга НКО-проектов",
-    owner: "Проектный офис",
-    status: "Пилот",
-    readiness: 74,
-    grant: "Президентские гранты",
-    deadline: "2026-06-04",
-    budget: "2 800 000 ₽",
-    nextStep: "Дособрать календарный план и показатели результата",
-  },
-  {
-    name: "Карта доступной городской среды",
-    owner: "Студенческий акселератор",
-    status: "Идея",
-    readiness: 30,
-    grant: "",
-    deadline: "",
-    budget: "900 000 ₽",
-    nextStep: "Выбрать конкурс и описать пользовательские сценарии",
-  },
-];
-
-let state = {
+const state = {
   projects: [],
   grants: [],
-  packages: [],
-  grantWindows: [],
-  plan: [],
-  directions: [],
-  summary: {},
-  query: "",
-  direction: "all",
-  status: "all",
-  deadline: "all",
-  preset: "all",
-  sortBy: "deadline",
-  sortDir: "asc",
-  ntsFeedback: [],
-  selectedFeedbackProject: "",
-  feedbackLoading: false,
+  feedback: [],
+  filters: {
+    query: "",
+    status: "all",
+    owner: "all",
+    readiness: "all",
+    risk: "all",
+  },
 };
 
 const els = {
-  tabs: document.querySelectorAll(".tab"),
-  views: document.querySelectorAll(".view"),
-  jumpButtons: document.querySelectorAll("[data-jump]"),
-  search: document.querySelector("#searchInput"),
-  direction: document.querySelector("#directionFilter"),
-  status: document.querySelector("#statusFilter"),
-  deadline: document.querySelector("#deadlineFilter"),
-  sortBy: document.querySelector("#sortBy"),
-  sortDir: document.querySelector("#sortDir"),
-  topSearch: document.querySelector("#topSearchInput"),
-  currentSectionTitle: document.querySelector("#currentSectionTitle"),
-  proxyButtons: document.querySelectorAll("[data-proxy-click]"),
-  saveFilter: document.querySelector("#saveFilter"),
-  savedFilters: document.querySelector("#savedFilters"),
-  refresh: document.querySelector("#refreshSheet"),
-  copyBrief: document.querySelector("#copyBrief"),
-  exportCsv: document.querySelector("#exportCsv"),
-  quickFilters: document.querySelectorAll(".quick-chip"),
-  projectRows: document.querySelector("#projectRows"),
-  projectList: document.querySelector("#projectList"),
-  packageRows: document.querySelector("#packageRows"),
-  packageList: document.querySelector("#packageList"),
-  grantBoard: document.querySelector("#grantBoard"),
-  grantWindows: document.querySelector("#grantWindows"),
-  timeline: document.querySelector("#timeline"),
-  actionList: document.querySelector("#actionList"),
-  executiveSummary: document.querySelector("#executiveSummary"),
-  portfolioMap: document.querySelector("#portfolioMap"),
-  leadershipActions: document.querySelector("#leadershipActions"),
-  filterSummary: document.querySelector("#filterSummary"),
-  projectInsights: document.querySelector("#projectInsights"),
-  grantInsights: document.querySelector("#grantInsights"),
-  packageSummary: document.querySelector("#packageSummary"),
-  portfolioHealth: document.querySelector("#portfolioHealth"),
-  portfolioHealthBar: document.querySelector("#portfolioHealthBar"),
-  portfolioHealthText: document.querySelector("#portfolioHealthText"),
-  statusChart: document.querySelector("#statusChart"),
-  directionChart: document.querySelector("#directionChart"),
-  deadlineHeatmap: document.querySelector("#deadlineHeatmap"),
-  deadlineCalendar: document.querySelector("#deadlineCalendar"),
-  feedbackForm: document.querySelector("#ntsFeedbackForm"),
-  feedbackProject: document.querySelector("#feedbackProjectSelect"),
-  feedbackList: document.querySelector("#ntsFeedbackList"),
-  latestFeedback: document.querySelector("#latestFeedback"),
-  feedbackStatus: document.querySelector("#feedbackStatus"),
-  feedbackError: document.querySelector("#feedbackError"),
-  reloadFeedback: document.querySelector("#reloadFeedback"),
-  drawer: document.querySelector("#projectDrawer"),
-  drawerBackdrop: document.querySelector("#drawerBackdrop"),
-  drawerContent: document.querySelector("#drawerContent"),
-  closeDrawer: document.querySelector("#closeDrawer"),
-  syncStatus: document.querySelector("#syncStatus"),
   syncDot: document.querySelector("#syncDot"),
-  dialog: document.querySelector("#projectDialog"),
-  form: document.querySelector("#projectForm"),
-  openDialog: document.querySelector("#openAddProject"),
-  presentationMode: document.querySelector("#presentationMode"),
-  closeDialog: document.querySelector("#closeDialog"),
-  cancelDialog: document.querySelector("#cancelDialog"),
-  confirmCode: document.querySelector("#confirmCode"),
-  confirmError: document.querySelector("#confirmError"),
-  clearFilters: document.querySelector("#clearFilters"),
-  saveSettings: document.querySelector("#saveSettings"),
-  scriptUrl: document.querySelector("#scriptUrl"),
-  sheetId: document.querySelector("#sheetId"),
-  sheetGid: document.querySelector("#sheetGid"),
+  syncStatus: document.querySelector("#syncStatus"),
+  refreshData: document.querySelector("#refreshData"),
+  menuToggle: document.querySelector("#menuToggle"),
+  mainNav: document.querySelector("#mainNav"),
+  navLinks: document.querySelectorAll(".main-nav a"),
+  kpiTotal: document.querySelector("#kpiTotal"),
+  kpiActive: document.querySelector("#kpiActive"),
+  kpiReady: document.querySelector("#kpiReady"),
+  kpiRisks: document.querySelector("#kpiRisks"),
+  leaderAttention: document.querySelector("#leaderAttention"),
+  ntsAgenda: document.querySelector("#ntsAgenda"),
+  searchInput: document.querySelector("#searchInput"),
+  statusFilter: document.querySelector("#statusFilter"),
+  ownerFilter: document.querySelector("#ownerFilter"),
+  readinessFilter: document.querySelector("#readinessFilter"),
+  riskFilter: document.querySelector("#riskFilter"),
+  projectGrid: document.querySelector("#projectGrid"),
+  projectTable: document.querySelector("#projectTable"),
+  grantGrid: document.querySelector("#grantGrid"),
+  funnelBoard: document.querySelector("#funnelBoard"),
+  ntsForm: document.querySelector("#ntsForm"),
+  formNote: document.querySelector("#formNote"),
+  feedbackProject: document.querySelector("#feedbackProject"),
+  feedbackFeed: document.querySelector("#feedbackFeed"),
   toast: document.querySelector("#toast"),
 };
 
-function normalizeKey(value) {
+const FUNNEL_STAGES = [
+  { name: "Идея", hint: "Зафиксировать проблему, целевую аудиторию и ожидаемый эффект." },
+  { name: "Предварительная проработка", hint: "Проверить аналоги, ограничения, партнеров и базовую реализуемость." },
+  { name: "ТЗ", hint: "Подготовить техническое задание, паспорт проекта и критерии результата." },
+  { name: "Команда", hint: "Назначить ответственного, исполнителей, экспертов и роли." },
+  { name: "Партнер", hint: "Получить письмо, пилотную площадку или внешнего заказчика." },
+  { name: "Финансовая модель", hint: "Собрать смету, календарный план, источники софинансирования." },
+  { name: "Грант / конкурс", hint: "Выбрать подходящее окно и проверить требования оператора." },
+  { name: "Подача", hint: "Собрать комплект документов и назначить дату отправки." },
+  { name: "Реализация", hint: "Вести сроки, бюджет, показатели и отчетные материалы." },
+  { name: "Отчетность / результат", hint: "Оформить результаты, акты, публикации, медиа и внедрение." },
+];
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function normalize(value) {
   return String(value || "")
     .trim()
     .toLowerCase()
@@ -162,2295 +92,495 @@ function normalizeKey(value) {
     .replace(/\s+/g, " ");
 }
 
-function getValue(row, keys) {
-  const normalized = Object.fromEntries(
-    Object.entries(row).map(([key, value]) => [normalizeKey(key), value])
-  );
-
-  for (const key of keys) {
-    const value = normalized[normalizeKey(key)];
+function getValue(row, names) {
+  const map = Object.fromEntries(Object.entries(row).map(([key, value]) => [normalize(key), value]));
+  for (const name of names) {
+    const value = map[normalize(name)];
     if (value !== undefined && value !== "") return value;
   }
-
   return "";
 }
 
-function firstValue(row, keys) {
-  return getValue(row, keys);
-}
-
-function normalizeStatus(value) {
-  const raw = String(value || "").trim();
-  const key = normalizeKey(raw);
-  if (!key) return "Идея";
-  if (key.includes("нов")) return "Идея";
-  if (key.includes("работ")) return "Пилот";
-  if (key.includes("упаков")) return "Готов к гранту";
-  if (key.includes("подан") || key.includes("заявк")) return "Подан";
-  if (key.includes("готов")) return "Готов к гранту";
-  if (key.includes("пилот")) return "Пилот";
-  if (key.includes("прототип") || key.includes("mvp")) return "Прототип";
-  if (key.includes("иде")) return "Идея";
-  return STATUSES.includes(raw) ? raw : "Идея";
-}
-
-function normalizeProject(row) {
-  const name = firstValue(row, [
-    "name",
-    "название",
-    "проект",
-    "project",
-    "наименование",
-    "Наименование проекта",
-  ]);
-  const owner = getValue(row, [
-    "owner",
-    "ответственный",
-    "команда",
-    "руководитель",
-    "фио",
-    "автор",
-    "инициатор",
-  ]);
-  const grant = getValue(row, [
-    "grant",
-    "грант",
-    "конкурс",
-    "фонд",
-    "программа",
-    "Маршрут финансирования",
-    "Ближайшее окно",
-  ]);
-  const deadline = toIsoDate(
-    getValue(row, ["deadline", "дедлайн", "срок", "дата подачи", "срок подачи"])
-  );
-
-  return {
-    id: getValue(row, ["id", "ID"]) || "",
-    name: name || "Без названия",
-    owner: owner || "Не назначен",
-    direction: getValue(row, ["direction", "направление", "тип"]) || "",
-    contour: getValue(row, ["contour", "контур"]) || "",
-    priority: getValue(row, ["priority", "приоритет"]) || "",
-    trl: getValue(row, ["trl", "утг", "УТГ", "col5"]) || "",
-    stage: getValue(row, ["stage", "стадия"]) || "",
-    status: normalizeStatus(getValue(row, ["status", "статус", "этап", "стадия"])),
-    readiness: clampPercent(
-      getValue(row, [
-        "readiness",
-        "готовность",
-        "готовность %",
-        "%",
-        "процент готовности",
-        "Готовность пакета",
-        "col13",
-      ])
-    ),
-    grant,
-    deadline,
-    budget: getValue(row, ["budget", "бюджет", "сумма", "запрашиваемая сумма", "Лимит / ориентир"]),
-    note: getValue(row, ["note", "блокер", "примечание", "Блокер / примечание"]),
-    nextStep: getValue(row, [
-      "nextStep",
-      "следующее действие",
-      "действие",
-      "задача",
-      "следующий шаг",
-      "комментарий",
-      "Блокер / примечание",
-    ]),
-  };
-}
-
-function columnValue(row, column) {
-  if (column === "A") {
-    const firstKey = Object.keys(row)[0];
-    return row[firstKey] || "";
-  }
-  return row[column] || "";
-}
-
-function buildPositionalProject(row) {
-  const name = columnValue(row, "A");
-  const owner = columnValue(row, "B");
-  const status = normalizeStatus(columnValue(row, "C"));
-  const rawStatus = columnValue(row, "C");
-
-  if (!name || !rawStatus || !STATUSES.includes(status)) return null;
-
-  return {
-    name,
-    owner: owner || "Не назначен",
-    status,
-    readiness: clampPercent(columnValue(row, "D")),
-    grant: columnValue(row, "E"),
-    deadline: toIsoDate(columnValue(row, "F")),
-    budget: columnValue(row, "G"),
-    nextStep: columnValue(row, "H"),
-  };
-}
-
-function normalizeRegistryProject(row) {
-  return normalizeProject({
-    ID: getValue(row, ["ID", "id"]),
-    Проект: getValue(row, ["Проект", "project"]),
-    Направление: getValue(row, ["Направление", "direction"]),
-    Контур: getValue(row, ["Контур", "contour"]),
-    Приоритет: getValue(row, ["Приоритет", "priority"]),
-    УТГ: getValue(row, ["УТГ", "trl", "col5"]),
-    Стадия: getValue(row, ["Стадия", "stage"]),
-    Ответственный: getValue(row, ["Ответственный", "owner"]),
-    "Маршрут финансирования": getValue(row, ["Маршрут финансирования", "funding", "grant"]),
-    "Лимит / ориентир": getValue(row, ["Лимит / ориентир", "limit", "budget"]),
-    "Следующее действие": getValue(row, ["Следующее действие", "nextAction", "nextStep"]),
-    Срок: getValue(row, ["Срок", "deadline"]),
-    "Готовность пакета": getValue(row, ["Готовность пакета", "readiness", "col13"]),
-    Статус: getValue(row, ["Статус", "status"]),
-    "Блокер / примечание": getValue(row, ["Блокер / примечание", "note"]),
-  });
-}
-
-function normalizeGrant(row) {
-  return {
-    route: getValue(row, ["Маршрут", "route"]) || "",
-    operator: getValue(row, ["Оператор", "operator"]) || "",
-    purpose: getValue(row, ["Для чего подходит", "purpose"]) || "",
-    applicant: getValue(row, ["Кто подает", "applicant"]) || "",
-    funding: getValue(row, ["Финансирование", "funding"]) || "",
-    window: getValue(row, ["Окно / статус на 27.04.2026", "Окно / статус", "window"]) || "",
-    projects: getValue(row, ["Проекты из реестра", "projects"]) || "",
-    firstStep: getValue(row, ["Что подготовить первым", "firstStep"]) || "",
-    source: getValue(row, ["Источник", "source"]) || "",
-    checked: getValue(row, ["Дата проверки", "checked"]) || "",
-  };
-}
-
-function normalizePackage(row) {
-  return {
-    id: getValue(row, ["ID", "id"]) || "",
-    project: getValue(row, ["Проект", "project"]) || "",
-    route: getValue(row, ["Маршрут", "route"]) || "",
-    owner: getValue(row, ["Ответственный", "owner"]) || "",
-    passport: getValue(row, ["Паспорт", "passport"]) || "",
-    problem: getValue(row, ["Проблема и эффект", "problem"]) || "",
-    mvp: getValue(row, ["MVP / прототип", "MVP", "mvp"]) || "",
-    pilot: getValue(row, ["Пилот / письма", "pilot"]) || "",
-    estimate: getValue(row, ["Смета", "estimate"]) || "",
-    presentation: getValue(row, ["Презентация", "presentation"]) || "",
-    legal: getValue(row, ["Юрконтур", "legal"]) || "",
-    readiness: getValue(row, ["Готовность", "readiness", "col11"]) || "",
-    nextStep: getValue(row, ["Следующий шаг", "nextStep"]) || "",
-  };
-}
-
-function parseSheetData(rows) {
-  const summary = {};
-  const grantWindows = [];
-  const plan = [];
-  const directions = [];
-  const projects = [];
-  let readingDirections = false;
-
-  rows.forEach((row) => {
-    const a = String(columnValue(row, "A")).trim();
-    const b = String(columnValue(row, "B")).trim();
-    const d = String(columnValue(row, "D")).trim();
-    const e = String(columnValue(row, "E")).trim();
-    const f = String(columnValue(row, "F")).trim();
-    const g = String(columnValue(row, "G")).trim();
-    const h = String(columnValue(row, "H")).trim();
-
-    const positionalProject = buildPositionalProject(row);
-    if (positionalProject) {
-      projects.push(positionalProject);
-      return;
-    }
-
-    if (a === "Направление") {
-      readingDirections = true;
-      return;
-    }
-
-    if (readingDirections && a && b) {
-      directions.push({ name: a, count: Number(b) || 0 });
-      return;
-    }
-
-    if (a && b && Number.isFinite(Number(b))) {
-      summary[a] = Number(b);
-    }
-
-    if (d && e && toIsoDate(e) && d !== "Ближайшие окна") {
-      grantWindows.push({
-        name: d,
-        deadline: toIsoDate(e),
-        appliesTo: f,
-        nextStep: g,
-        source: h,
-      });
-    }
-
-    if (/^\d+$/.test(d) && e) {
-      plan.push({ number: Number(d), text: e });
-    }
-  });
-
-  return { projects, grantWindows, plan, directions, summary };
-}
-
 function clampPercent(value) {
-  const number = Number(String(value || "").replace("%", "").replace(",", "."));
-  if (!Number.isFinite(number)) return 0;
-  return Math.max(0, Math.min(100, Math.round(number)));
+  const match = String(value || "").replace(",", ".").match(/\d+(\.\d+)?/);
+  if (!match) return null;
+  return Math.max(0, Math.min(100, Math.round(Number(match[0]))));
 }
 
 function toIsoDate(value) {
   if (!value) return "";
-  if (value instanceof Date && !Number.isNaN(value.valueOf())) {
-    return value.toISOString().slice(0, 10);
-  }
-
   const raw = String(value).trim();
-  const gvizDate = raw.match(/^Date\((\d+),(\d+),(\d+)\)$/);
-  if (gvizDate) {
-    const [, year, month, day] = gvizDate;
-    return `${year}-${String(Number(month) + 1).padStart(2, "0")}-${day.padStart(2, "0")}`;
-  }
+  const gviz = raw.match(/^Date\((\d+),(\d+),(\d+)\)$/);
+  if (gviz) return `${gviz[1]}-${String(Number(gviz[2]) + 1).padStart(2, "0")}-${String(gviz[3]).padStart(2, "0")}`;
   if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
-
-  const match = raw.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$/);
+  const match = raw.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})/);
   if (!match) return "";
-  const [, day, month, year] = match;
-  const fullYear = year.length === 2 ? `20${year}` : year;
-  return `${fullYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+  const year = match[3].length === 2 ? `20${match[3]}` : match[3];
+  return `${year}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}`;
 }
 
-function gvizValue(cell) {
-  if (!cell) return "";
-  return cell.f || cell.v || "";
+function formatDate(iso) {
+  if (!iso) return "требует уточнения";
+  return new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short", year: "numeric" }).format(new Date(`${iso}T00:00:00`));
 }
 
-function loadSheetRows() {
-  return new Promise((resolve, reject) => {
-    const callback = `rgsuSheetCallback_${Date.now()}`;
-    const script = document.createElement("script");
-    const cleanup = () => {
-      delete window[callback];
-      script.remove();
-    };
-
-    window[callback] = (data) => {
-      cleanup();
-      if (!data || data.status === "error") {
-        reject(new Error("sheet unavailable"));
-        return;
-      }
-
-      const headers = (data.table.cols || []).map(
-        (column, index) => column.label || column.id || `col${index}`
-      );
-      const rows = (data.table.rows || []).map((row) =>
-        Object.fromEntries(headers.map((header, index) => [header, gvizValue(row.c[index])]))
-      );
-      resolve(rows);
-    };
-
-    script.onerror = () => {
-      cleanup();
-      reject(new Error("sheet unavailable"));
-    };
-    script.src = `${GVIZ_URL}?gid=${SHEET.gid}&headers=1&tqx=responseHandler:${callback}&cacheBust=${Date.now()}`;
-    document.head.append(script);
-  });
-}
-
-function loadGridRows(gid) {
-  return new Promise((resolve, reject) => {
-    const callback = `rgsuGridCallback_${gid}_${Date.now()}`;
-    const script = document.createElement("script");
-    const cleanup = () => {
-      delete window[callback];
-      script.remove();
-    };
-
-    window[callback] = (data) => {
-      cleanup();
-      if (!data || data.status === "error") {
-        reject(new Error("sheet unavailable"));
-        return;
-      }
-
-      resolve((data.table.rows || []).map((row) => (row.c || []).map(gvizValue)));
-    };
-
-    script.onerror = () => {
-      cleanup();
-      reject(new Error("sheet unavailable"));
-    };
-    script.src = `${GVIZ_URL}?gid=${gid}&headers=0&tqx=responseHandler:${callback}&cacheBust=${Date.now()}`;
-    document.head.append(script);
-  });
-}
-
-function tableFromGrid(rows, headerIndex = 2) {
-  const headers = (rows[headerIndex] || []).map((header, index) => String(header || `col${index}`).trim());
-  return rows
-    .slice(headerIndex + 1)
-    .filter((row) => row.some(Boolean))
-    .map((row) => Object.fromEntries(headers.map((header, index) => [header, row[index] || ""])));
-}
-
-function daysUntil(dateValue) {
-  if (!dateValue) return Infinity;
+function daysUntil(iso) {
+  if (!iso) return Infinity;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const target = new Date(`${dateValue}T00:00:00`);
-  return Math.ceil((target - today) / 86400000);
+  return Math.ceil((new Date(`${iso}T00:00:00`) - today) / 86400000);
 }
 
-function formatDate(dateValue) {
-  if (!dateValue) return "Без дедлайна";
-  return new Intl.DateTimeFormat("ru-RU", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(`${dateValue}T00:00:00`));
-}
-
-function deadlineInfo(project) {
-  const due = daysUntil(project.deadline);
-  if (!project.deadline) {
-    return { label: "Без дедлайна", className: "is-missing", due };
-  }
-  if (due < 0) {
-    return { label: `Просрочено: ${Math.abs(due)} дн.`, className: "is-urgent", due };
-  }
-  if (due === 0) {
-    return { label: "Сегодня", className: "is-urgent", due };
-  }
-  if (due <= 14) {
-    return { label: `${due} дн.`, className: "is-urgent", due };
-  }
-  return { label: `${due} дн.`, className: due <= 30 ? "is-urgent" : "", due };
-}
-
-function loadLocalProjects() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch {
-    return [];
-  }
-}
-
-function saveLocalProjects(projects) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-}
-
-function updateLocalProject(project) {
-  const localProjects = loadLocalProjects();
-  const key = project.id ? String(project.id) : projectKey(project);
-  const index = localProjects.findIndex((item) => (project.id && String(item.id) === key) || projectKey(item) === key);
-  if (index >= 0) {
-    localProjects[index] = { ...localProjects[index], ...project };
-    saveLocalProjects(localProjects);
-  }
-}
-
-function projectKey(project) {
-  return normalizeKey(`${project.name}|${project.owner}|${project.grant}|${project.deadline}`);
-}
-
-function mergeProjects(...groups) {
-  const map = new Map();
-  groups.flat().forEach((project) => {
-    if (!project || !project.name) return;
-    const key = projectKey(project);
-    if (!map.has(key)) map.set(key, project);
-  });
-  return Array.from(map.values());
-}
-
-function setSyncState(message, type = "loading") {
+function setSync(message, type = "loading") {
+  if (!els.syncStatus || !els.syncDot) return;
   els.syncStatus.textContent = message;
-  els.syncDot.classList.toggle("is-ok", type === "ok");
-  els.syncDot.classList.toggle("is-error", type === "error");
+  els.syncDot.classList.toggle("ok", type === "ok");
+  els.syncDot.classList.toggle("error", type === "error");
 }
 
 function showToast(message, type = "") {
+  if (!els.toast) return;
   els.toast.textContent = message;
-  els.toast.classList.toggle("is-error", type === "error");
+  els.toast.classList.toggle("error", type === "error");
   els.toast.classList.add("is-visible");
-  window.clearTimeout(showToast.timer);
-  showToast.timer = window.setTimeout(() => els.toast.classList.remove("is-visible"), 3600);
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => els.toast.classList.remove("is-visible"), 3500);
 }
 
-function readJson(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
+function gvizCell(cell) {
+  return cell ? cell.f || cell.v || "" : "";
 }
 
-function writeJson(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Storage can be blocked in some embedded browsers; the app still works without cache.
-  }
-}
-
-function saveLocalFeedback(items) {
-  writeJson(NTS_FEEDBACK_KEY, items);
-}
-
-function loadLocalFeedback() {
-  return readJson(NTS_FEEDBACK_KEY, []);
-}
-
-function saveDataCache() {
-  writeJson(DATA_CACHE_KEY, {
-    createdAt: new Date().toISOString(),
-    projects: state.projects,
-    grants: state.grants,
-    packages: state.packages,
-    grantWindows: state.grantWindows,
-    plan: state.plan,
-    directions: state.directions,
-    summary: state.summary,
+// Автоматически ищем строку заголовков, чтобы сайт переживал переносы и добавление служебных строк сверху.
+function findHeaderIndex(rows, requiredWords) {
+  const fallback = 0;
+  let bestIndex = fallback;
+  let bestScore = -1;
+  rows.forEach((row, index) => {
+    const text = normalize(row.join(" "));
+    const score = requiredWords.reduce((sum, word) => sum + (text.includes(normalize(word)) ? 1 : 0), 0);
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
   });
+  return bestIndex;
 }
 
-function applyDataCache() {
-  const cached = readJson(DATA_CACHE_KEY, null);
-  if (!cached || !Array.isArray(cached.projects)) return false;
-  state.projects = cached.projects.map(normalizeProject);
-  state.grants = Array.isArray(cached.grants) ? cached.grants : [];
-  state.packages = Array.isArray(cached.packages) ? cached.packages : [];
-  state.grantWindows = Array.isArray(cached.grantWindows) ? cached.grantWindows : [];
-  state.plan = Array.isArray(cached.plan) ? cached.plan : [];
-  state.directions = Array.isArray(cached.directions) ? cached.directions : [];
-  state.summary = cached.summary || {};
-  populateDirections();
-  render();
-  return true;
-}
+function loadSheet(gid, requiredWords = ["проект"]) {
+  return new Promise((resolve, reject) => {
+    const callback = `callback_${gid}_${Date.now()}`;
+    const script = document.createElement("script");
 
-function setConfirmError(message = "") {
-  els.confirmError.textContent = message;
-  els.confirmCode.setAttribute("aria-invalid", message ? "true" : "false");
-}
-
-function populateDirections() {
-  const current = state.direction;
-  const directions = Array.from(new Set(state.projects.map((project) => project.direction).filter(Boolean))).sort((a, b) =>
-    a.localeCompare(b, "ru")
-  );
-  els.direction.innerHTML = '<option value="all">Все направления</option>';
-  directions.forEach((direction) => {
-    const option = document.createElement("option");
-    option.value = direction;
-    option.textContent = direction;
-    els.direction.append(option);
-  });
-  els.direction.value = directions.includes(current) ? current : "all";
-  state.direction = els.direction.value;
-}
-
-function priorityRank(priority) {
-  const key = normalizeKey(priority);
-  if (key.includes("выс") || key.includes("С‹СЃ")) return 3;
-  if (key.includes("сред") || key.includes("СЂРµРґ")) return 2;
-  if (key.includes("низ") || key.includes("РёР·")) return 1;
-  return 0;
-}
-
-function sortValue(project, key) {
-  if (key === "priority") return priorityRank(project.priority);
-  if (key === "readiness") return packageReadiness(project);
-  if (key === "owner") return normalizeKey(project.owner);
-  if (key === "createdAt") return project.createdAt ? new Date(project.createdAt).getTime() : 0;
-  const due = daysUntil(project.deadline);
-  return due === Infinity ? 99999 : due;
-}
-
-function compareProjects(a, b) {
-  const first = sortValue(a, state.sortBy);
-  const second = sortValue(b, state.sortBy);
-  const direction = state.sortDir === "desc" ? -1 : 1;
-  if (typeof first === "string" || typeof second === "string") {
-    return String(first).localeCompare(String(second), "ru") * direction;
-  }
-  return ((first || 0) - (second || 0)) * direction;
-}
-
-async function loadProjects() {
-  setSyncState("Загружаю данные из Google Таблицы...");
-  const localProjects = loadLocalProjects().map(normalizeProject);
-  const hasCache = applyDataCache();
-  if (hasCache) setSyncState("Показан кеш портфеля. Обновляю данные из Google Таблицы...");
-
-  try {
-    const [projectRows, grantRows, packageRows] = await Promise.all([
-      loadGridRows(SHEETS.projects),
-      loadGridRows(SHEETS.grants),
-      loadGridRows(SHEETS.packages),
-    ]);
-    const projects = tableFromGrid(projectRows).map(normalizeRegistryProject).filter((project) => project.name && project.name !== "Без названия");
-    state.grants = tableFromGrid(grantRows).map(normalizeGrant).filter((grant) => grant.route);
-    state.packages = tableFromGrid(packageRows).map(normalizePackage).filter((item) => item.project || item.id);
-    state.grantWindows = state.grants.map((grant) => ({
-      name: grant.route,
-      deadline: toIsoDate(grant.window),
-      appliesTo: grant.purpose || grant.projects,
-      nextStep: grant.firstStep,
-      source: grant.source,
-    }));
-    state.plan = [];
-    state.directions = [];
-    state.summary = {};
-    state.projects = mergeProjects(projects, localProjects);
-    populateDirections();
-    populateFeedbackProjects();
-    saveDataCache();
-    setSyncState(
-      `Связано с Google Таблицей: ${projects.length} проектов, ${state.grants.length} грантов, ${state.packages.length} пакетов подачи. Локальный буфер: ${localProjects.length}.`,
-      "ok"
-    );
-  } catch {
-    try {
-      const sheetData = parseSheetData(await loadSheetRows());
-      state.grantWindows = sheetData.grantWindows;
-      state.plan = sheetData.plan;
-      state.directions = sheetData.directions;
-      state.grants = sheetData.grantWindows.map((grant) => ({
-        route: grant.name,
-        purpose: grant.appliesTo,
-        firstStep: grant.nextStep,
-        source: grant.source,
-      }));
-      state.packages = [];
-      state.summary = sheetData.summary;
-      state.projects = mergeProjects(sheetData.projects, localProjects);
-      populateDirections();
-      populateFeedbackProjects();
-      saveDataCache();
-      setSyncState(
-        `Связано с Google Таблицей: ${sheetData.projects.length} проектов, ${sheetData.grantWindows.length} грантовых окон. Локальный буфер: ${localProjects.length}.`,
-        "ok"
-      );
-    } catch {
-      if (hasCache) {
-        setSyncState("Google Таблица сейчас недоступна. Показан последний сохраненный кеш.", "error");
+    window[callback] = (payload) => {
+      delete window[callback];
+      script.remove();
+      if (!payload || payload.status === "error") {
+        reject(new Error("Google Таблица временно недоступна"));
         return;
       }
-      state.grants = [];
-      state.packages = [];
-      state.grantWindows = [];
-      state.plan = [];
-      state.directions = [];
-      state.summary = {};
-      state.projects = mergeProjects(localProjects, fallbackProjects);
-      populateDirections();
-      populateFeedbackProjects();
-      setSyncState(
-        "Таблица временно недоступна. Показаны локальные и демонстрационные проекты.",
-        "error"
-      );
-    }
-  }
 
-  render();
+      const rawRows = (payload.table.rows || []).map((row) => (row.c || []).map(gvizCell));
+      const headerIndex = findHeaderIndex(rawRows, requiredWords);
+      const headers = (rawRows[headerIndex] || []).map((h, i) => String(h || `col${i}`).trim());
+      const data = rawRows
+        .slice(headerIndex + 1)
+        .filter((row) => row.some(Boolean))
+        .map((row) => Object.fromEntries(headers.map((header, i) => [header, row[i] || ""])));
+
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      delete window[callback];
+      script.remove();
+      reject(new Error("Не удалось загрузить данные Google Таблицы"));
+    };
+
+    script.src = `https://docs.google.com/spreadsheets/d/${CONFIG.sheetId}/gviz/tq?gid=${gid}&headers=0&tqx=responseHandler:${callback}&cacheBust=${Date.now()}`;
+    document.head.append(script);
+  });
+}
+
+function normalizeStatus(value) {
+  const key = normalize(value);
+  if (!key) return "требует уточнения";
+  if (key.includes("готов") || key.includes("упаков")) return "готов к гранту";
+  if (key.includes("подан")) return "подан на грант";
+  if (key.includes("реализ")) return "в реализации";
+  if (key.includes("приостан")) return "приостановлен";
+  if (key.includes("нтс") || key.includes("решен")) return "требует решения НТС";
+  if (key.includes("заверш")) return "завершен";
+  if (key.includes("тз")) return "есть ТЗ";
+  if (key.includes("проработ") || key.includes("работ")) return "на проработке";
+  if (key.includes("иде")) return "идея";
+  return String(value || "требует уточнения").trim().toLowerCase();
+}
+
+function normalizeProject(row) {
+  const readiness = clampPercent(getValue(row, ["Готовность пакета", "Готовность", "Готовность %", "readiness", "Процент готовности"]));
+  return {
+    id: getValue(row, ["ID", "id", "№", "Номер"]),
+    name: getValue(row, ["Проект", "Название", "Наименование", "Наименование проекта", "project"]) || "без названия",
+    direction: getValue(row, ["Направление", "direction", "Тип", "Сфера"]),
+    contour: getValue(row, ["Контур", "contour"]),
+    priority: getValue(row, ["Приоритет", "priority"]),
+    trl: getValue(row, ["УТГ", "TRL", "trl"]),
+    stage: getValue(row, ["Стадия", "Этап", "stage"]),
+    owner: getValue(row, ["Ответственный", "Команда", "Руководитель", "Инициатор", "owner"]),
+    grant: getValue(row, ["Маршрут финансирования", "Ближайшее окно", "Грант", "Конкурс", "grant"]),
+    window: getValue(row, ["Ближайшее окно", "Окно", "window"]),
+    budget: getValue(row, ["Лимит / ориентир", "Бюджет", "Сумма", "budget"]),
+    nextStep: getValue(row, ["Следующее действие", "Следующий шаг", "Действие", "Задача", "nextStep"]),
+    deadline: toIsoDate(getValue(row, ["Срок", "Дедлайн", "Дата подачи", "Срок подачи", "deadline"])),
+    readiness,
+    status: normalizeStatus(getValue(row, ["Статус", "status", "Состояние"])),
+    note: getValue(row, ["Блокер / примечание", "Примечание", "Комментарий", "Риск", "note"]),
+  };
+}
+
+function normalizeGrant(row) {
+  const windowText = getValue(row, ["Окно / статус на 27.04.2026", "Окно / статус", "Окно", "window", "Срок"]);
+  return {
+    route: getValue(row, ["Маршрут", "Грант", "Конкурс", "route"]),
+    operator: getValue(row, ["Оператор", "operator"]),
+    purpose: getValue(row, ["Для чего подходит", "purpose"]),
+    applicant: getValue(row, ["Кто подает", "applicant"]),
+    funding: getValue(row, ["Финансирование", "Сумма", "funding"]),
+    window: windowText,
+    deadline: toIsoDate(windowText),
+    projects: getValue(row, ["Проекты из реестра", "projects"]),
+    firstStep: getValue(row, ["Что подготовить первым", "Первый шаг", "firstStep"]),
+    source: getValue(row, ["Источник", "Ссылка", "source"]),
+  };
+}
+
+function normalizeFeedback(row) {
+  return {
+    id: getValue(row, ["ID"]),
+    date: getValue(row, ["Дата и время", "Дата"]),
+    author: getValue(row, ["ФИО / автор", "Автор", "ФИО"]),
+    role: getValue(row, ["Роль / организация", "Роль"]),
+    type: getValue(row, ["Тип обращения", "Тип сообщения", "Категория"]),
+    project: getValue(row, ["Связанный проект", "Проект"]),
+    priority: getValue(row, ["Приоритет"]),
+    message: getValue(row, ["Текст пожелания", "Текст сообщения", "Сообщение"]),
+    status: getValue(row, ["Статус", "Статус обработки", "Статус рассмотрения"]),
+  };
+}
+
+function projectHasUnknown(project) {
+  return !project.owner || !project.grant || !project.deadline || project.readiness === null || !project.nextStep;
+}
+
+function projectHasRisk(project) {
+  return projectHasUnknown(project) || normalize(project.note).includes("нуж") || normalize(project.status).includes("нтс");
+}
+
+function statusBadge(status) {
+  const key = normalize(status);
+  if (key.includes("готов") || key.includes("реализ") || key.includes("подан")) return "green";
+  if (key.includes("работ") || key.includes("тз") || key.includes("проработ")) return "blue";
+  if (key.includes("уточ") || key.includes("нтс") || key.includes("иде")) return "yellow";
+  if (key.includes("риск") || key.includes("приостан")) return "red";
+  return "gray";
+}
+
+function deadlineBadge(project) {
+  const d = daysUntil(project.deadline);
+  if (!project.deadline) return { label: "нет точных данных", color: "yellow" };
+  if (d < 0) return { label: "прошел срок", color: "red" };
+  if (d <= 14) return { label: `${d} дн.`, color: "red" };
+  if (d <= 45) return { label: `${d} дн.`, color: "yellow" };
+  return { label: `${d} дн.`, color: "blue" };
 }
 
 function filteredProjects() {
-  const query = normalizeKey(state.query);
-  return state.projects
-    .filter((project) => {
-      const haystack = normalizeKey(
-        `${project.name} ${project.owner} ${project.direction} ${project.priority} ${project.trl} ${project.grant} ${project.nextStep} ${project.status}`
-      );
-      const matchesQuery = !query || haystack.includes(query);
-      const matchesDirection = state.direction === "all" || project.direction === state.direction;
-      const matchesStatus = state.status === "all" || project.status === state.status;
-      const due = daysUntil(project.deadline);
-      const matchesDeadline =
-        state.deadline === "all" ||
-        (state.deadline === "missing" && !project.deadline) ||
-        (state.deadline !== "missing" && due >= 0 && due <= Number(state.deadline));
-      const matchesPreset =
-        state.preset === "all" ||
-        (state.preset === "urgent" && due >= 0 && due <= 30) ||
-        (state.preset === "ready" && (packageReadiness(project) >= 70 || project.status === "Готов к гранту")) ||
-        (state.preset === "risks" && Boolean(projectRisk(project))) ||
-        (state.preset === "high" && project.priority === "Высокий");
-      return matchesQuery && matchesDirection && matchesStatus && matchesDeadline && matchesPreset;
-    })
-    .sort(compareProjects);
+  return state.projects.filter((project) => {
+    const q = normalize(state.filters.query);
+    const haystack = normalize([project.name, project.owner, project.status, project.grant, project.nextStep, project.note].join(" "));
+    if (q && !haystack.includes(q)) return false;
+    if (state.filters.status !== "all" && project.status !== state.filters.status) return false;
+    if (state.filters.owner !== "all" && (project.owner || "требует уточнения") !== state.filters.owner) return false;
+    if (state.filters.readiness === "ready" && (project.readiness ?? 0) < 70) return false;
+    if (state.filters.readiness === "middle" && !((project.readiness ?? 0) >= 40 && (project.readiness ?? 0) < 70)) return false;
+    if (state.filters.readiness === "low" && !((project.readiness ?? 0) < 40)) return false;
+    if (state.filters.readiness === "unknown" && project.readiness !== null) return false;
+    if (state.filters.risk === "risk" && !projectHasRisk(project)) return false;
+    if (state.filters.risk === "unknown" && !projectHasUnknown(project)) return false;
+    return true;
+  });
 }
 
-function statusClass(status) {
-  const key = normalizeKey(status);
-  if (key.includes("подан")) return "status-submitted";
-  if (key.includes("готов")) return "status-ready";
-  if (key.includes("иде")) return "status-idea";
-  return "";
+function renderFilters() {
+  const statuses = Array.from(new Set(state.projects.map((p) => p.status).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ru"));
+  const owners = Array.from(new Set(state.projects.map((p) => p.owner || "требует уточнения"))).sort((a, b) => a.localeCompare(b, "ru"));
+  els.statusFilter.innerHTML = `<option value="all">Все статусы</option>${statuses.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("")}`;
+  els.ownerFilter.innerHTML = `<option value="all">Все ответственные</option>${owners.map((o) => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join("")}`;
+  els.feedbackProject.innerHTML = `<option value="">Ко всему портфелю</option>${state.projects.map((p) => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join("")}`;
 }
 
-function createText(tag, className, text) {
-  const element = document.createElement(tag);
-  if (className) element.className = className;
-  element.textContent = text;
-  return element;
+function renderKpi() {
+  els.kpiTotal.textContent = state.projects.length;
+  els.kpiActive.textContent = state.projects.filter((p) => !["завершен", "приостановлен"].includes(p.status)).length;
+  els.kpiReady.textContent = state.projects.filter((p) => (p.readiness ?? 0) >= 70 || p.status.includes("готов")).length;
+  els.kpiRisks.textContent = state.projects.filter(projectHasRisk).length;
 }
 
-function renderDeadlineBadge(project) {
-  const info = deadlineInfo(project);
-  const badge = createText("span", `deadline-badge ${info.className}`.trim(), info.label);
-  badge.title = project.deadline ? formatDate(project.deadline) : "Дата подачи не указана";
-  return badge;
+function renderAttention() {
+  const blocks = [
+    ["Проекты без ответственного", state.projects.filter((p) => !p.owner).slice(0, 3)],
+    ["Проекты без ТЗ / стадии ТЗ", state.projects.filter((p) => !normalize(p.stage).includes("тз") && !normalize(p.status).includes("тз")).slice(0, 3)],
+    ["Проекты без грантовой траектории", state.projects.filter((p) => !p.grant).slice(0, 3)],
+    ["Ближайшие дедлайны", state.projects.filter((p) => daysUntil(p.deadline) <= 45).sort((a, b) => daysUntil(a.deadline) - daysUntil(b.deadline)).slice(0, 3)],
+    ["Проекты с высоким риском", state.projects.filter(projectHasRisk).slice(0, 3)],
+    ["Новые пожелания НТС", state.feedback.filter((f) => normalize(f.status).includes("нов") || !f.status).slice(0, 3)],
+  ];
+
+  els.leaderAttention.innerHTML = blocks.map(([title, items]) => {
+    const names = items.map((item) => item.name || item.project || item.message).filter(Boolean).slice(0, 2).join("; ");
+    return `<div class="attention-item"><strong>${escapeHtml(title)}</strong><small>${names ? escapeHtml(names) : "нет данных / ожидает заполнения"}</small></div>`;
+  }).join("");
+
+  const ntsItems = [
+    ["Проекты на рассмотрение", state.projects.filter((p) => normalize(p.status).includes("нтс") || projectHasRisk(p)).slice(0, 4)],
+    ["Вопросы для обсуждения", state.feedback.filter((f) => normalize(f.type).includes("вопрос")).slice(0, 4)],
+    ["Риски", state.feedback.filter((f) => normalize(f.type).includes("риск")).slice(0, 4)],
+    ["Решения, которые нужно принять", state.feedback.filter((f) => normalize(f.type).includes("решение")).slice(0, 4)],
+  ];
+
+  els.ntsAgenda.innerHTML = ntsItems.map(([title, items]) => {
+    const names = items.map((item) => item.name || item.project || item.message).filter(Boolean).slice(0, 2).join("; ");
+    return `<div class="attention-item"><strong>${escapeHtml(title)}</strong><small>${names ? escapeHtml(names) : "ожидает заполнения"}</small></div>`;
+  }).join("");
 }
 
-function renderProgress(readiness) {
-  const wrap = document.createElement("div");
-  wrap.className = "progress";
-  const bar = document.createElement("span");
-  bar.style.width = `${readiness}%`;
-  wrap.append(bar);
-  return wrap;
-}
-
-function projectRisk(project) {
-  if (!project.grant) return "Нужно выбрать грант";
-  if (!project.deadline) return "Нужен дедлайн";
-  if (!project.owner || project.owner === "Не назначен") return "Нужен ответственный";
-  if (!project.nextStep) return "Нужен следующий шаг";
-  if (daysUntil(project.deadline) <= 14 && packageReadiness(project) < 70) return "Мало времени до подачи";
-  return "";
-}
-
-function packageElementScore(value) {
-  const text = normalizeKey(value);
-  if (!text || ["нет", "no", "-", "0", "не готово"].includes(text)) return 0;
-  if (text.includes("част") || text.includes("работ") || text.includes("50")) return 50;
-  return 100;
-}
-
-function packageDetails(project) {
-  const pack = packageByProject(project);
-  const elements = [
-    { key: "passport", label: "паспорт", value: pack?.passport },
-    { key: "problem", label: "проблема и эффект", value: pack?.problem },
-    { key: "mvp", label: "MVP / прототип", value: pack?.mvp },
-    { key: "pilot", label: "пилот / письма", value: pack?.pilot },
-    { key: "estimate", label: "смета", value: pack?.estimate },
-    { key: "presentation", label: "презентация", value: pack?.presentation },
-    { key: "legal", label: "юрконтур", value: pack?.legal },
-  ].map((item) => ({ ...item, score: packageElementScore(item.value) }));
-  const percent = elements.length
-    ? Math.round(elements.reduce((sum, item) => sum + item.score, 0) / elements.length)
-    : clampPercent(project.readiness);
-  const missing = elements.filter((item) => item.score < 100).map((item) => item.label);
-  const nextStep = pack?.nextStep || project.nextStep || "";
-  return { pack, elements, percent, missing, nextStep };
-}
-
-function riskStatus(project) {
-  const due = daysUntil(project.deadline);
-  const readiness = packageReadiness(project);
-  if (!project.grant || !project.deadline || !project.owner || project.owner === "Не назначен") {
-    return { key: "gray", label: "Неполные данные", reason: projectRisk(project) || "Нужно уточнить маршрут, срок или ответственного" };
-  }
-  if (due >= 0 && due < 14 && readiness < 70) {
-    return { key: "red", label: "Критический риск", reason: "Дедлайн менее 14 дней, готовность ниже 70%" };
-  }
-  if (readiness >= 70 || project.status === "Готов к гранту") {
-    return { key: "green", label: "Готов к подаче", reason: "Пакет готов или близок к подаче" };
-  }
-  return { key: "yellow", label: "Требует доработки", reason: projectRisk(project) || "Нужна доупаковка проекта" };
-}
-
-function riskClass(project) {
-  return `risk-${riskStatus(project).key}`;
-}
-
-function renderRiskBadge(project) {
-  const status = riskStatus(project);
-  const badge = createText("span", `risk-badge ${riskClass(project)}`, status.label);
-  badge.title = status.reason;
-  return badge;
-}
-
-function projectScore(project) {
-  let score = project.readiness;
-  if (project.priority === "Высокий") score += 22;
-  if (project.trl && Number(project.trl) >= 5) score += 12;
-  if (project.owner && project.owner !== "Не назначен") score += 8;
-  if (project.grant) score += 8;
-  if (project.nextStep) score += 6;
-  const due = daysUntil(project.deadline);
-  if (due !== Infinity && due <= 30) score += 10;
-  if (projectRisk(project)) score -= 12;
-  return Math.max(0, Math.min(140, score));
-}
-
-function projectTier(project) {
-  const due = daysUntil(project.deadline);
-  if (due !== Infinity && due <= 30 && project.readiness >= 45) return "Подача сейчас";
-  if (project.readiness >= 70 || project.status === "Готов к гранту") return "Готовить пакет";
-  if (projectRisk(project)) return "Нужны решения";
-  return "Развитие";
-}
-
-function packageByProject(project) {
-  return state.packages.find((item) => item.id && project.id && item.id === project.id)
-    || state.packages.find((item) => normalizeKey(item.project) === normalizeKey(project.name))
-    || null;
-}
-
-function packageReadiness(project) {
-  const details = packageDetails(project);
-  return details.pack ? details.percent : clampPercent(project.readiness);
-}
-
-function leadershipDecision(project) {
-  const pack = packageByProject(project);
-  if (!project.owner || project.owner === "Не назначен") return "Назначить ответственного и владельца пакета";
-  if (!project.grant) return "Выбрать грантовый маршрут";
-  if (!project.deadline) return "Зафиксировать окно подачи";
-  if (pack && packageReadiness(project) < 45) return "Дать поручение на паспорт, смету и письма пилотов";
-  if (daysUntil(project.deadline) <= 14 && project.readiness < 70) return "Решить: срочная упаковка или перенос подачи";
-  if (project.priority === "Высокий" && project.readiness >= 50) return "Подтвердить приоритет и ресурс на упаковку";
-  return project.nextStep || "Назначить следующий шаг";
-}
-
-function renderTable(projects) {
-  els.projectRows.replaceChildren();
-  if (!projects.length) {
-    const row = document.createElement("tr");
-    const cell = document.createElement("td");
-    cell.colSpan = 8;
-    cell.className = "empty-state";
-    cell.textContent = "Проектов по выбранным фильтрам нет.";
-    row.append(cell);
-    els.projectRows.append(row);
+function renderProjects() {
+  const list = filteredProjects().sort((a, b) => daysUntil(a.deadline) - daysUntil(b.deadline));
+  if (!list.length) {
+    els.projectGrid.innerHTML = `<div class="empty-state">Нет проектов под выбранные фильтры.</div>`;
+    els.projectTable.innerHTML = "";
     return;
   }
 
-  projects.forEach((project) => {
-    const row = document.createElement("tr");
-    row.classList.add("is-clickable", riskClass(project));
-    row.tabIndex = 0;
-    row.setAttribute("role", "button");
-    row.addEventListener("click", () => openProjectDrawer(project));
-    row.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        openProjectDrawer(project);
-      }
-    });
-    const due = daysUntil(project.deadline);
-    if (projectRisk(project)) row.classList.add("is-risk");
-    if (due >= 0 && due <= 30) row.classList.add("is-urgent");
-    if (packageReadiness(project) >= 70 || project.status === "Готов к гранту") row.classList.add("is-ready");
+  els.projectGrid.innerHTML = list.map((project) => {
+    const deadline = deadlineBadge(project);
+    const readiness = project.readiness === null ? "требует уточнения" : `${project.readiness}%`;
+    const progress = project.readiness ?? 0;
+    return `<article class="project-card">
+      <div class="card-top"><h3>${escapeHtml(project.name)}</h3><span class="badge ${statusBadge(project.status)}">${escapeHtml(project.status)}</span></div>
+      <div class="card-meta"><span class="badge blue">${escapeHtml(project.owner || "нет точных данных")}</span><span class="badge ${deadline.color}">${escapeHtml(formatDate(project.deadline))}</span>${projectHasUnknown(project) ? `<span class="badge yellow">нет точных данных</span>` : ""}</div>
+      <div class="progress-track" title="Готовность пакета"><span style="width:${progress}%"></span></div>
+      <p class="card-text"><strong>Грант:</strong> ${escapeHtml(project.grant || "требует уточнения")}</p>
+      <p class="card-text"><strong>Следующее действие:</strong> ${escapeHtml(project.nextStep || "ожидает заполнения")}</p>
+      <small class="card-text">Готовность: ${escapeHtml(readiness)} · ${escapeHtml(deadline.label)}</small>
+    </article>`;
+  }).join("");
 
-    const nameCell = document.createElement("td");
-    const nameWrap = document.createElement("div");
-    nameWrap.className = "project-name";
-    nameWrap.append(createText("strong", "", project.name));
-    nameWrap.append(createText("small", "muted", project.budget || "Бюджет не указан"));
-    nameWrap.append(renderRiskBadge(project));
-    nameCell.append(nameWrap);
-
-    const ownerCell = createText("td", "", project.owner);
-    const directionCell = createText("td", "", project.direction || "Не указано");
-
-    const statusCell = document.createElement("td");
-    statusCell.append(createText("span", `status-pill ${statusClass(project.status)}`.trim(), project.status));
-
-    const grantCell = createText("td", "", project.grant || "Грант не выбран");
-
-    const deadlineCell = document.createElement("td");
-    deadlineCell.append(renderDeadlineBadge(project));
-
-    const readinessCell = document.createElement("td");
-    readinessCell.className = "readiness-cell";
-    readinessCell.append(renderProgress(packageReadiness(project)));
-    readinessCell.append(createText("small", "muted", `${packageReadiness(project)}% пакет`));
-
-    const nextCell = createText("td", "muted", project.nextStep || projectRisk(project) || "Не указано");
-
-    row.append(nameCell, directionCell, ownerCell, statusCell, grantCell, deadlineCell, readinessCell, nextCell);
-    els.projectRows.append(row);
-  });
+  els.projectTable.innerHTML = list.map((project) => `<tr class="${projectHasRisk(project) ? "is-risk" : ""} ${deadlineBadge(project).color === "red" ? "is-critical" : ""}">
+    <td><strong>${escapeHtml(project.name)}</strong><br><small>${escapeHtml(project.direction || "нет данных")}</small></td>
+    <td>${escapeHtml(project.owner || "требует уточнения")}</td>
+    <td><span class="badge ${statusBadge(project.status)}">${escapeHtml(project.status)}</span></td>
+    <td>${escapeHtml(project.grant || "требует уточнения")}</td>
+    <td>${escapeHtml(formatDate(project.deadline))}</td>
+    <td>${project.readiness === null ? `<span class="badge yellow">нет точных данных</span>` : `${project.readiness}%`}</td>
+    <td>${escapeHtml(project.nextStep || "ожидает заполнения")}</td>
+  </tr>`).join("");
 }
 
-function renderCard(project) {
-  const template = document.querySelector("#projectCardTemplate");
-  const card = template.content.firstElementChild.cloneNode(true);
-  const deadline = deadlineInfo(project);
-  card.classList.add("is-clickable", riskClass(project));
-  card.tabIndex = 0;
-  card.setAttribute("role", "button");
-  card.addEventListener("click", () => openProjectDrawer(project));
-  card.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      openProjectDrawer(project);
-    }
-  });
-
-  card.querySelector(".status-pill").textContent = project.status;
-  card.querySelector(".status-pill").className = `status-pill ${statusClass(project.status)}`.trim();
-  card.querySelector("h3").textContent = project.name;
-  card.querySelector(".project-meta").textContent = [
-    project.direction,
-    project.priority ? `приоритет: ${project.priority}` : "",
-    project.trl ? `УТГ ${project.trl}` : "",
-    project.owner,
-    project.budget,
-  ].filter(Boolean).join(" · ");
-  card.querySelector(".next-step").textContent = project.nextStep || projectRisk(project) || "Следующее действие не указано";
-  card.querySelector(".deadline").textContent = project.deadline ? `${formatDate(project.deadline)} · ${deadline.label}` : "Без дедлайна";
-  card.querySelector(".grant-name").textContent = project.grant || "Грант не выбран";
-  card.querySelector(".progress span").style.width = `${packageReadiness(project)}%`;
-  card.querySelector(".readiness").textContent = `Готовность ${project.readiness}%`;
-  card.querySelector(".readiness").textContent = `Пакет ${packageReadiness(project)}% · ${riskStatus(project).label}`;
-  if (deadline.className === "is-urgent") card.querySelector(".deadline").style.color = "var(--red)";
-  return card;
+function grantStatus(grant) {
+  const text = normalize(grant.window);
+  const d = daysUntil(grant.deadline);
+  if (grant.deadline && grant.deadline < CONFIG.juneStart) return { label: "раннее окно / не приоритет с июня", color: "yellow", className: "is-low-priority" };
+  if (grant.deadline && d < 0) return { label: "прошедший дедлайн", color: "gray", className: "is-archive" };
+  if (grant.deadline && d <= 21) return { label: "скоро завершится", color: "red", className: "is-low-priority" };
+  if (text.includes("монитор") || text.includes("провер")) return { label: "требует перепроверки", color: "yellow", className: "is-low-priority" };
+  return { label: "актуально", color: "green", className: "" };
 }
 
-function renderMobileCards(projects) {
-  els.projectList.replaceChildren();
-  if (!projects.length) {
-    els.projectList.append(createText("div", "empty-state", "Проектов по выбранным фильтрам нет."));
-    return;
-  }
-  projects.forEach((project) => els.projectList.append(renderCard(project)));
-}
-
-function packageReady(value) {
-  const text = normalizeKey(value);
-  return Boolean(text && !["нет", "no", "-", "0", "не готово"].includes(text));
-}
-
-function packageDetailsFromItem(item) {
-  const elements = [
-    { label: "паспорт", value: item.passport },
-    { label: "проблема и эффект", value: item.problem },
-    { label: "MVP / прототип", value: item.mvp },
-    { label: "пилот / письма", value: item.pilot },
-    { label: "смета", value: item.estimate },
-    { label: "презентация", value: item.presentation },
-    { label: "юрконтур", value: item.legal },
-  ].map((element) => ({ ...element, score: packageElementScore(element.value) }));
-  const percent = Math.round(elements.reduce((sum, element) => sum + element.score, 0) / elements.length);
-  return { elements, percent, missing: elements.filter((element) => element.score < 100).map((element) => element.label) };
-}
-
-function renderPackages() {
-  els.packageRows.replaceChildren();
-  els.packageList.replaceChildren();
-
-  if (!state.packages.length) {
-    const row = document.createElement("tr");
-    const cell = createText("td", "empty-state", "Пакет подачи пока не найден в Google Таблице.");
-    cell.colSpan = 10;
-    row.append(cell);
-    els.packageRows.append(row);
-    els.packageList.append(createText("div", "empty-state", "Пакет подачи пока не найден в Google Таблице."));
-    return;
-  }
-
-  state.packages.forEach((item) => {
-    const row = document.createElement("tr");
-    const details = packageDetailsFromItem(item);
-    row.classList.add(details.percent >= 70 ? "risk-green" : details.percent >= 45 ? "risk-yellow" : "risk-gray");
-    [
-      item.project,
-      item.route,
-      item.owner,
-      item.passport,
-      item.mvp,
-      item.pilot,
-      item.estimate,
-      item.presentation,
-      `${details.percent}%`,
-      item.nextStep || (details.missing.length ? `Не хватает: ${details.missing.join(", ")}` : ""),
-    ].forEach((value) => row.append(createText("td", value ? "" : "muted", value || "Не указано")));
-    els.packageRows.append(row);
-
-    const card = document.createElement("article");
-    card.className = "package-card";
-    card.classList.add(details.percent >= 70 ? "risk-green" : details.percent >= 45 ? "risk-yellow" : "risk-gray");
-    card.append(createText("h3", "", item.project || "Без названия"));
-    card.append(createText("p", "muted", [item.route, item.owner, item.readiness].filter(Boolean).join(" · ") || "Маршрут не указан"));
-    const checks = document.createElement("div");
-    checks.className = "package-checks";
-    [
-      ["Паспорт", item.passport],
-      ["MVP", item.mvp],
-      ["Пилот", item.pilot],
-      ["Смета", item.estimate],
-      ["Презентация", item.presentation],
-    ].forEach(([label, value]) => checks.append(createText("span", `check-pill ${packageReady(value) ? "is-ready" : ""}`.trim(), label)));
-    card.append(checks);
-    card.append(renderProgress(details.percent));
-    card.append(createText("p", "muted", item.nextStep || "Следующий шаг не указан"));
-    els.packageList.append(card);
-  });
-}
-
-function renderBoard(projects) {
-  els.grantBoard.replaceChildren();
-  STATUSES.forEach((status) => {
-    const column = document.createElement("section");
-    column.className = "grant-column";
-    column.append(createText("h3", "", `${status} · ${projects.filter((project) => project.status === status).length}`));
-
-    const items = projects.filter((project) => project.status === status);
-    if (!items.length) {
-      column.append(createText("div", "empty-state", "Нет проектов"));
-    } else {
-      items.forEach((project) => column.append(renderCard(project)));
-    }
-
-    els.grantBoard.append(column);
-  });
-}
-
-function renderGrantWindows() {
-  els.grantWindows.replaceChildren();
-  const grants = state.grants.length
-    ? state.grants.map((grant) => ({
-        name: grant.route,
-        deadline: toIsoDate(grant.window),
-        appliesTo: grant.purpose || grant.projects,
-        nextStep: grant.firstStep,
-        source: grant.source,
-        window: grant.window,
-        operator: grant.operator,
-        funding: grant.funding,
-      }))
-    : state.grantWindows;
-
+function renderGrants() {
+  const grants = state.grants.filter((g) => g.route);
   if (!grants.length) {
-    els.grantWindows.append(createText("div", "empty-state", "Грантовые окна пока не найдены в таблице."));
+    els.grantGrid.innerHTML = `<div class="empty-state">Нет данных по грантам. Проверьте лист «Актуальные гранты».</div>`;
     return;
   }
-
-  grants
-    .slice()
-    .sort((a, b) => daysUntil(a.deadline) - daysUntil(b.deadline))
-    .forEach((grant) => {
-      const card = document.createElement("article");
-      card.className = "grant-window";
-      card.append(grant.deadline ? renderDeadlineBadge({ deadline: grant.deadline }) : createText("span", "deadline-badge is-missing", grant.window || "Окно уточнить"));
-      card.append(createText("strong", "", grant.name));
-      card.append(createText("p", "", [grant.operator, grant.funding].filter(Boolean).join(" · ") || grant.appliesTo || "Направление не указано"));
-      if (grant.appliesTo) card.append(createText("p", "", grant.appliesTo));
-      card.append(createText("p", "", grant.nextStep || "Следующее действие не указано"));
-      if (grant.source) card.append(createText("small", "muted", grant.source));
-      els.grantWindows.append(card);
-    });
+  els.grantGrid.innerHTML = grants.map((grant) => {
+    const status = grantStatus(grant);
+    const source = grant.source ? `<a href="${escapeHtml(grant.source)}" target="_blank" rel="noreferrer">Источник</a>` : `<span class="badge yellow">ссылка не указана</span>`;
+    return `<article class="grant-card ${status.className}">
+      <div class="card-top"><h3>${escapeHtml(grant.route)}</h3><span class="badge ${status.color}">${escapeHtml(status.label)}</span></div>
+      <p class="card-text"><strong>Оператор:</strong> ${escapeHtml(grant.operator || "нет данных")}</p>
+      <p class="card-text"><strong>Сумма:</strong> ${escapeHtml(grant.funding || "требует уточнения")}</p>
+      <p class="card-text"><strong>Кому подходит:</strong> ${escapeHtml(grant.purpose || "ожидает заполнения")}</p>
+      <p class="card-text"><strong>Проекты:</strong> ${escapeHtml(grant.projects || "требует сопоставления")}</p>
+      <p class="card-text"><strong>Первый шаг:</strong> ${escapeHtml(grant.firstStep || "ожидает заполнения")}</p>
+      <div class="card-meta"><span class="badge blue">${escapeHtml(grant.window || "нет точных данных")}</span>${source}</div>
+    </article>`;
+  }).join("");
 }
 
-function renderTimeline(projects) {
-  els.timeline.replaceChildren();
-  const datedProjects = projects.filter((project) => project.deadline);
-  const dated = datedProjects.length
-    ? datedProjects.slice(0, 8)
-    : state.grantWindows
-        .map((grant) => ({
-          name: grant.name,
-          grant: grant.appliesTo,
-          deadline: grant.deadline,
-        }))
-        .sort((a, b) => daysUntil(a.deadline) - daysUntil(b.deadline))
-        .slice(0, 8);
-  if (!dated.length) {
-    els.timeline.append(
-      createText("div", "empty-state", "Добавьте дедлайны, чтобы собрать грантовый календарь.")
-    );
+function resolveFunnelStage(project) {
+  const text = normalize([project.stage, project.status, project.grant, project.owner, project.nextStep].join(" "));
+  if (text.includes("отчет") || text.includes("результ")) return 9;
+  if (text.includes("реализ")) return 8;
+  if (text.includes("подан")) return 7;
+  if (project.grant) return 6;
+  if (text.includes("смет") || text.includes("финанс")) return 5;
+  if (text.includes("партнер") || text.includes("пилот") || text.includes("письм")) return 4;
+  if (project.owner) return 3;
+  if (text.includes("тз") || text.includes("паспорт")) return 2;
+  if (text.includes("проработ") || text.includes("прототип") || text.includes("mvp")) return 1;
+  return 0;
+}
+
+function renderFunnel() {
+  const buckets = FUNNEL_STAGES.map((stage) => ({ ...stage, projects: [] }));
+  state.projects.forEach((project) => buckets[resolveFunnelStage(project)].projects.push(project));
+  els.funnelBoard.innerHTML = buckets.map((stage, index) => {
+    const bottleneck = stage.projects.filter(projectHasRisk).length;
+    const next = bottleneck ? "Снять неопределенность и назначить ответственного" : "Поддерживать движение к следующему этапу";
+    return `<article class="funnel-stage">
+      <span class="funnel-number">${index + 1}</span>
+      <h3>${escapeHtml(stage.name)}</h3>
+      <div class="card-meta"><span class="badge blue">${stage.projects.length} проектов</span><span class="badge ${bottleneck ? "yellow" : "green"}">${bottleneck ? `${bottleneck} узких мест` : "без явных рисков"}</span></div>
+      <p class="stage-hint"><strong>Что дальше:</strong> ${escapeHtml(next)}</p>
+      <p class="stage-hint"><strong>Рекомендация:</strong> ${escapeHtml(stage.hint)}</p>
+      <div class="funnel-projects">${stage.projects.slice(0, 5).map((p) => `<div class="funnel-project">${escapeHtml(p.name)}</div>`).join("") || `<div class="empty-state">пока нет проектов</div>`}</div>
+    </article>`;
+  }).join("");
+}
+
+function renderFeedback() {
+  const items = state.feedback.filter((item) => item.message || item.author).slice(0, 8);
+  if (!items.length) {
+    els.feedbackFeed.innerHTML = `<div class="empty-state">Пока нет загруженных пожеланий. Новые записи будут сохранены в лист «Пожелания НТС».</div>`;
     return;
   }
-
-  dated.forEach((project) => {
-    const item = document.createElement("article");
-    item.className = `timeline-item ${project.name ? `is-clickable ${riskClass(project)}` : ""}`.trim();
-    if (state.projects.includes(project)) {
-      item.tabIndex = 0;
-      item.setAttribute("role", "button");
-      item.addEventListener("click", () => openProjectDrawer(project));
-      item.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openProjectDrawer(project);
-        }
-      });
-    }
-
-    const date = createText("strong", "timeline-date", formatDate(project.deadline));
-    const title = document.createElement("div");
-    title.className = "timeline-title";
-    title.append(createText("strong", "", project.name));
-    title.append(createText("small", "", project.grant || "Грант не выбран"));
-
-    item.append(date, title, renderDeadlineBadge(project));
-    els.timeline.append(item);
-  });
+  els.feedbackFeed.innerHTML = items.map((item) => `<article class="feedback-item">
+    <div class="card-meta"><span class="badge blue">${escapeHtml(item.type || "пожелание")}</span><span class="badge ${normalize(item.priority).includes("крит") || normalize(item.priority).includes("выс") ? "red" : "yellow"}">${escapeHtml(item.priority || "средний")}</span><span class="badge gray">${escapeHtml(item.status || "новое")}</span></div>
+    <strong>${escapeHtml(item.author || "Автор не указан")}</strong>
+    <p class="message">${escapeHtml(item.message)}</p>
+    <small>${escapeHtml(item.project || "ко всему портфелю")} · ${escapeHtml(item.date || "дата не указана")}</small>
+  </article>`).join("");
 }
 
-function renderActions(projects) {
-  els.actionList.replaceChildren();
-  const actions = projects
-    .map((project) => ({ project, reason: projectRisk(project) }))
-    .filter((item) => item.reason)
-    .sort((a, b) => daysUntil(a.project.deadline) - daysUntil(b.project.deadline))
-    .slice(0, 7);
-
-  if (!actions.length && state.plan.length) {
-    state.plan.slice(0, 7).forEach((step) => {
-      const item = document.createElement("article");
-      item.className = "action-item";
-      const text = document.createElement("div");
-      text.append(createText("strong", "", `Шаг ${step.number}`));
-      text.append(createText("small", "", step.text));
-      item.append(text, createText("span", "deadline-badge", "7 дней"));
-      els.actionList.append(item);
-    });
-    return;
-  }
-
-  if (!actions.length) {
-    els.actionList.append(createText("div", "empty-state", "Критичных пробелов не найдено."));
-    return;
-  }
-
-  actions.forEach(({ project, reason }) => {
-    const item = document.createElement("article");
-    item.className = `action-item is-clickable ${riskClass(project)}`;
-    item.tabIndex = 0;
-    item.setAttribute("role", "button");
-    item.addEventListener("click", () => openProjectDrawer(project));
-    item.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        openProjectDrawer(project);
-      }
-    });
-    const text = document.createElement("div");
-    text.append(createText("strong", "", project.name));
-    text.append(createText("small", "", reason));
-    item.append(text, renderDeadlineBadge(project));
-    els.actionList.append(item);
-  });
+function renderAll() {
+  renderKpi();
+  renderAttention();
+  renderProjects();
+  renderGrants();
+  renderFunnel();
+  renderFeedback();
 }
 
-function renderExecutiveSummary(projects) {
-  els.executiveSummary.replaceChildren();
-  const urgent = projects.filter((project) => {
-    const due = daysUntil(project.deadline);
-    return due !== Infinity && due <= 30;
-  });
-  const top = projects.slice().sort((a, b) => projectScore(b) - projectScore(a))[0];
-  const weakPackages = projects.filter((project) => packageReadiness(project) > 0 && packageReadiness(project) < 45);
-  const highPriority = projects.filter((project) => project.priority === "Высокий");
-  const decisions = projects.filter((project) => leadershipDecision(project)).slice(0, 5);
-  const items = [
-    {
-      label: "Фокус показа",
-      title: top ? top.name : "Портфель загружен",
-      text: top ? `${top.direction || "направление не указано"} · ${top.grant || "маршрут уточнить"}` : "Данные появятся после подключения таблицы.",
-    },
-    {
-      label: "Срочные окна",
-      title: `${urgent.length} проектов`,
-      text: urgent[0] ? `Ближайший дедлайн: ${formatDate(urgent[0].deadline)}` : "Нет дедлайнов в ближайшие 30 дней.",
-    },
-    {
-      label: "Нужна доупаковка",
-      title: `${weakPackages.length} пакетов`,
-      text: weakPackages.length ? "Слабые места: паспорт, смета, письма пилотов, презентация." : "Критичных пробелов по пакетам не видно.",
-    },
-    {
-      label: "Приоритет руководства",
-      title: `${highPriority.length} проектов`,
-      text: decisions[0] ? leadershipDecision(decisions[0]) : "Можно перейти к плановому контролю.",
-    },
-  ];
-
-  items.forEach((item) => {
-    const card = document.createElement("article");
-    card.className = "executive-item";
-    card.append(createText("span", "", item.label));
-    card.append(createText("strong", "", item.title));
-    card.append(createText("p", "", item.text));
-    els.executiveSummary.append(card);
-  });
-}
-
-function renderPortfolioMap(projects) {
-  els.portfolioMap.replaceChildren();
-  const groups = ["Подача сейчас", "Готовить пакет", "Нужны решения", "Развитие"];
-  groups.forEach((group) => {
-    const items = projects
-      .filter((project) => projectTier(project) === group)
-      .sort((a, b) => projectScore(b) - projectScore(a));
-    const column = document.createElement("section");
-    column.className = "portfolio-column";
-    const heading = document.createElement("h3");
-    heading.append(createText("strong", "", group));
-    heading.append(createText("span", "", String(items.length)));
-    column.append(heading);
-
-    if (!items.length) {
-      column.append(createText("div", "empty-state", "Нет проектов"));
-    } else {
-      items.slice(0, 5).forEach((project) => {
-        const item = document.createElement("article");
-        item.className = `portfolio-project is-clickable ${riskClass(project)}`;
-        item.tabIndex = 0;
-        item.setAttribute("role", "button");
-        item.addEventListener("click", () => openProjectDrawer(project));
-        item.addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            openProjectDrawer(project);
-          }
-        });
-        item.append(createText("strong", "", project.name));
-        item.append(createText("small", "", [
-          project.direction,
-          project.deadline ? formatDate(project.deadline) : "",
-          `${packageReadiness(project)}% пакет`,
-        ].filter(Boolean).join(" · ")));
-        column.append(item);
-      });
-    }
-
-    els.portfolioMap.append(column);
-  });
-}
-
-function renderLeadershipActions(projects) {
-  els.leadershipActions.replaceChildren();
-  const fastest = projects
-    .filter((project) => project.grant && project.deadline && packageReadiness(project) >= 45 && packageReadiness(project) < 70)
-    .sort((a, b) => packageReadiness(b) - packageReadiness(a))[0];
-  const actions = [
-    ...projects.filter((project) => !project.owner || project.owner === "Не назначен").map((project) => ({ project, decision: "Назначить ответственного" })),
-    ...projects.filter((project) => !project.grant).map((project) => ({ project, decision: "Выбрать грантовый маршрут" })),
-    ...projects.filter((project) => !project.deadline).map((project) => ({ project, decision: "Зафиксировать дедлайн подачи" })),
-    ...projects.filter((project) => {
-      const due = daysUntil(project.deadline);
-      return due >= 0 && due < 14 && packageReadiness(project) < 70;
-    }).map((project) => ({ project, decision: "Срочно доупаковать или перенести подачу" })),
-    ...(fastest ? [{ project: fastest, decision: "Быстрее всего довести до подачи" }] : []),
-  ]
-    .filter((item, index, list) => list.findIndex((other) => other.project === item.project && other.decision === item.decision) === index)
-    .slice(0, 7);
-
-  if (!actions.length) {
-    els.leadershipActions.append(createText("div", "empty-state", "После загрузки данных появятся поручения."));
-    return;
-  }
-
-  actions.forEach(({ project, decision }, index) => {
-    const item = document.createElement("article");
-    item.className = `leadership-item is-clickable ${riskClass(project)}`;
-    item.tabIndex = 0;
-    item.setAttribute("role", "button");
-    item.addEventListener("click", () => openProjectDrawer(project));
-    item.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        openProjectDrawer(project);
-      }
-    });
-    item.append(createText("span", "leadership-number", String(index + 1)));
-    const text = document.createElement("div");
-    text.append(createText("strong", "", project.name));
-    text.append(createText("small", "", decision || leadershipDecision(project)));
-    item.append(text);
-    els.leadershipActions.append(item);
-  });
-}
-
-function renderInsightCards(container, items) {
-  container.replaceChildren();
-  items.forEach((item) => {
-    const card = document.createElement("article");
-    card.className = "insight-card";
-    card.append(createText("span", "", item.label));
-    card.append(createText("strong", "", item.value));
-    card.append(createText("small", "", item.text));
-    container.append(card);
-  });
-}
-
-function renderFilterSummary(projects) {
-  els.filterSummary.replaceChildren();
-  const presetLabels = {
-    urgent: "Быстрый фильтр: срочно",
-    ready: "Быстрый фильтр: к подаче",
-    risks: "Быстрый фильтр: риски",
-    high: "Быстрый фильтр: высокий приоритет",
-  };
-  const chips = [
-    state.preset !== "all" ? { text: presetLabels[state.preset] || state.preset } : null,
-    { text: `${projects.length} из ${state.projects.length || 0} проектов`, strong: true },
-    state.direction !== "all" ? { text: `Направление: ${state.direction}` } : null,
-    state.status !== "all" ? { text: `Статус: ${state.status}` } : null,
-    state.deadline !== "all" ? { text: state.deadline === "missing" ? "Без дедлайна" : `Дедлайн: ${state.deadline} дней` } : null,
-    state.query ? { text: `Поиск: ${state.query}` } : null,
-  ].filter(Boolean);
-
-  chips.forEach((chip) => {
-    const node = createText("span", `summary-chip ${chip.strong ? "is-strong" : ""}`.trim(), chip.text);
-    els.filterSummary.append(node);
-  });
-}
-
-function renderProjectInsights(projects) {
-  const high = projects.filter((project) => project.priority === "Высокий").length;
-  const avgReadiness = projects.length
-    ? Math.round(projects.reduce((sum, project) => sum + project.readiness, 0) / projects.length)
-    : 0;
-  const topDirection = Object.entries(projects.reduce((acc, project) => {
-    const key = project.direction || "Без направления";
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {})).sort((a, b) => b[1] - a[1])[0];
-
-  renderInsightCards(els.projectInsights, [
-    { label: "Высокий приоритет", value: `${high}`, text: "Проекты, которые стоит держать в фокусе руководства." },
-    { label: "Средняя готовность", value: `${avgReadiness}%`, text: "Оценка готовности пакета по отфильтрованной выборке." },
-    { label: "Крупное направление", value: topDirection ? topDirection[0] : "-", text: topDirection ? `${topDirection[1]} проектов в выборке.` : "Появится после загрузки данных." },
-  ]);
-}
-
-function renderGrantInsights() {
-  const withSources = state.grants.filter((grant) => grant.source).length;
-  const withProjects = state.grants.filter((grant) => grant.projects).length;
-  const firstStep = state.grants.find((grant) => grant.firstStep)?.firstStep || "Подготовить паспорт, MVP, смету и письма пилотов";
-
-  renderInsightCards(els.grantInsights, [
-    { label: "Маршрутов", value: `${state.grants.length}`, text: "Актуальные грантовые и конкурсные направления." },
-    { label: "Связаны с проектами", value: `${withProjects}`, text: "Маршруты, где уже указаны проекты из реестра." },
-    { label: "Первый шаг", value: "Упаковка", text: firstStep },
-  ]);
-}
-
-function renderPackageSummary() {
-  const average = state.packages.length
-    ? Math.round(state.packages.reduce((sum, item) => sum + clampPercent(item.readiness), 0) / state.packages.length)
-    : 0;
-  const weak = state.packages.filter((item) => clampPercent(item.readiness) < 45).length;
-  const ready = state.packages.filter((item) => clampPercent(item.readiness) >= 70).length;
-
-  renderInsightCards(els.packageSummary, [
-    { label: "Средняя готовность", value: `${average}%`, text: "Средняя готовность пакетов подачи." },
-    { label: "Слабые пакеты", value: `${weak}`, text: "Нужны паспорт, письма, смета или презентация." },
-    { label: "Почти готовы", value: `${ready}`, text: "Можно быстро довести до подачи." },
-  ]);
-}
-
-function renderMetrics(projects) {
-  const urgent = projects.filter((project) => {
-    const due = daysUntil(project.deadline);
-    return due >= 0 && due <= 30;
-  });
-  const urgentWindows = state.grantWindows.filter((grant) => {
-    const due = daysUntil(grant.deadline);
-    return due >= 0 && due <= 30;
-  });
-  const ready = projects.filter((project) => project.readiness >= 70 || project.status === "Готов к гранту");
-  const risks = projects.filter((project) => projectRisk(project));
-  const nearest =
-    projects.find((project) => project.deadline) ||
-    state.grantWindows
-      .slice()
-      .sort((a, b) => daysUntil(a.deadline) - daysUntil(b.deadline))[0];
-  const total = state.projects.length || state.summary["Всего проектов"] || 0;
-  const readyCount = ready.length || state.summary["К упаковке"] || 0;
-
-  document.querySelector("#totalProjects").textContent = total;
-  document.querySelector("#filteredCount").textContent = state.projects.length
-    ? `${projects.length} показано`
-    : "из сводки таблицы";
-  document.querySelector("#urgentGrants").textContent = urgent.length || urgentWindows.length;
-  document.querySelector("#readyCount").textContent = readyCount;
-  document.querySelector("#riskCount").textContent = risks.length;
-  document.querySelector("#weekFocus").textContent = nearest
-    ? `Ближайший фокус: ${nearest.grant || nearest.name}`
-    : "Нет срочных дедлайнов";
-}
-
-function renderPortfolioHealth(projects) {
-  if (!projects.length) {
-    els.portfolioHealth.textContent = "0%";
-    els.portfolioHealthBar.style.width = "0%";
-    els.portfolioHealthText.textContent = "Нет проектов в выбранном срезе.";
-    return;
-  }
-
-  const avgReadiness = projects.reduce((sum, project) => sum + packageReadiness(project), 0) / projects.length;
-  const readyRate = projects.filter((project) => packageReadiness(project) >= 70 || project.status === "Готов к гранту").length / projects.length;
-  const riskRate = projects.filter((project) => projectRisk(project)).length / projects.length;
-  const urgentWithReadiness = projects.filter((project) => {
-    const due = daysUntil(project.deadline);
-    return due >= 0 && due <= 30 && packageReadiness(project) >= 60;
-  }).length / projects.length;
-  const score = Math.round((avgReadiness * 0.5) + (readyRate * 25) + ((1 - riskRate) * 15) + (urgentWithReadiness * 10));
-
-  els.portfolioHealth.textContent = `${score}%`;
-  els.portfolioHealthBar.style.width = `${Math.max(4, score)}%`;
-  els.portfolioHealthText.textContent =
-    score >= 70
-      ? "Портфель выглядит убедительно для подачи и разговора с руководством."
-      : score >= 45
-        ? "Есть рабочая база: закройте риски, дедлайны и недостающие пакеты."
-        : "Нужно быстро назначить владельцев, гранты и следующие действия.";
-}
-
-function setQuickPreset(preset) {
-  state.preset = preset;
-  els.quickFilters.forEach((button) => {
-    const active = button.dataset.preset === preset;
-    button.classList.toggle("is-active", active);
-    button.setAttribute("aria-pressed", active ? "true" : "false");
-  });
-}
-
-function buildBrief(projects) {
-  const list = projects.length ? projects : state.projects;
-  const urgent = list.filter((project) => {
-    const due = daysUntil(project.deadline);
-    return due >= 0 && due <= 30;
-  });
-  const ready = list.filter((project) => packageReadiness(project) >= 70 || project.status === "Готов к гранту");
-  const risks = list.filter((project) => projectRisk(project) || riskStatus(project).key === "gray");
-  const focus = [...urgent]
-    .sort((a, b) => daysUntil(a.deadline) - daysUntil(b.deadline))
-    .slice(0, 3)
-    .map((project) => `- ${project.name}: ${project.deadline ? formatDate(project.deadline) : "дедлайн не указан"}, готовность ${packageReadiness(project)}%, ${project.nextStep || leadershipDecision(project)}`)
-    .join("\n");
-  const attention = [...risks]
-    .sort((a, b) => daysUntil(a.deadline) - daysUntil(b.deadline))
-    .slice(0, 3)
-    .map((project) => `- ${project.name}: ${projectRisk(project) || riskStatus(project).reason}`)
-    .join("\n");
-
-  return [
-    "Уважаемые коллеги!",
-    "",
-    `В портфеле Технопарка РГСУ находится ${list.length} проектов.`,
-    `Срочные дедлайны в ближайшие 30 дней: ${urgent.length}.`,
-    `Готовы или близки к подаче: ${ready.length}.`,
-    `Требуют решения руководства или уточнения данных: ${risks.length}.`,
-    "",
-    "Ближайший фокус:",
-    focus || "- срочных подач по выбранному срезу нет",
-    "",
-    "Что требует внимания:",
-    attention || "- критичных рисков по выбранному срезу нет",
-    "",
-    "Предлагается: назначить ответственных по проектам без маршрута, подтвердить дедлайны и доупаковать паспорта, сметы, презентации и письма партнеров.",
-  ].join("\n");
-}
-
-async function copyBriefToClipboard() {
-  const brief = buildBrief(filteredProjects());
+async function loadAllData() {
+  setSync("Загружаю проекты, гранты и пожелания НТС из Google Таблицы...");
   try {
-    await navigator.clipboard.writeText(brief);
-    showToast("Сводка скопирована. Можно вставить в письмо или доклад.");
+    const [projectRows, grantRows, feedbackRows] = await Promise.all([
+      loadSheet(CONFIG.sheets.projects, ["проект", "статус"]),
+      loadSheet(CONFIG.sheets.grants, ["маршрут", "оператор"]),
+      loadSheet(CONFIG.sheets.nts, ["фио", "текст"]).catch(() => []),
+    ]);
+    state.projects = projectRows.map(normalizeProject).filter((p) => p.name && p.name !== "без названия");
+    state.grants = grantRows.map(normalizeGrant).filter((g) => g.route);
+    state.feedback = feedbackRows.map(normalizeFeedback).filter((f) => f.message || f.author).reverse();
+    renderFilters();
+    renderAll();
+    setSync(`Данные загружены: ${state.projects.length} проектов, ${state.grants.length} грантов, ${state.feedback.length} пожеланий НТС. Источник проектов: gid ${CONFIG.sheets.projects}.`, "ok");
   } catch (error) {
-    console.info(brief);
-    showToast("Браузер не дал доступ к буферу. Сводка выведена в консоль.", "error");
+    setSync("Не удалось загрузить данные. Проверьте доступ к Google Таблице или структуру листа.", "error");
+    showToast(error.message || "Ошибка загрузки данных", "error");
   }
 }
 
-function countBy(items, getter) {
-  return items.reduce((acc, item) => {
-    const key = getter(item) || "Не указано";
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
+function handleFilters() {
+  state.filters.query = els.searchInput.value;
+  state.filters.status = els.statusFilter.value;
+  state.filters.owner = els.ownerFilter.value;
+  state.filters.readiness = els.readinessFilter.value;
+  state.filters.risk = els.riskFilter.value;
+  renderProjects();
 }
 
-function renderChart(container, entries, total) {
-  container.replaceChildren();
-  if (!entries.length) {
-    container.append(createText("div", "empty-state compact", "Нет данных для графика."));
-    return;
-  }
-  entries.forEach(([label, value]) => {
-    const row = document.createElement("div");
-    row.className = "chart-row";
-    const head = document.createElement("div");
-    head.append(createText("span", "", label));
-    head.append(createText("strong", "", String(value)));
-    const track = document.createElement("div");
-    track.className = "chart-track";
-    const bar = document.createElement("span");
-    bar.style.width = `${Math.max(6, Math.round((value / Math.max(total, 1)) * 100))}%`;
-    track.append(bar);
-    row.append(head, track);
-    container.append(row);
-  });
-}
-
-function renderAnalytics(projects) {
-  const statusEntries = Object.entries(countBy(projects, (project) => project.status)).sort((a, b) => b[1] - a[1]);
-  const directionEntries = Object.entries(countBy(projects, (project) => project.direction)).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  renderChart(els.statusChart, statusEntries, projects.length);
-  renderChart(els.directionChart, directionEntries, projects.length);
-
-  els.deadlineHeatmap.replaceChildren();
-  const cells = [
-    ["0-14", projects.filter((project) => {
-      const due = daysUntil(project.deadline);
-      return due >= 0 && due <= 14;
-    })],
-    ["15-30", projects.filter((project) => {
-      const due = daysUntil(project.deadline);
-      return due > 14 && due <= 30;
-    })],
-    ["31-60", projects.filter((project) => {
-      const due = daysUntil(project.deadline);
-      return due > 30 && due <= 60;
-    })],
-    ["60+", projects.filter((project) => daysUntil(project.deadline) > 60)],
-  ];
-  cells.forEach(([label, items]) => {
-    const readiness = items.length ? Math.round(items.reduce((sum, project) => sum + packageReadiness(project), 0) / items.length) : 0;
-    const cell = document.createElement("div");
-    cell.className = `heat-cell ${items.length >= 5 ? "is-hot" : items.length >= 2 ? "is-warm" : ""}`.trim();
-    cell.append(createText("span", "", label));
-    cell.append(createText("strong", "", String(items.length)));
-    cell.append(createText("small", "", `${readiness}% готовность`));
-    els.deadlineHeatmap.append(cell);
-  });
-}
-
-function renderDeadlineCalendar(projects) {
-  els.deadlineCalendar.replaceChildren();
-  const dated = projects
-    .filter((project) => project.deadline)
-    .sort((a, b) => daysUntil(a.deadline) - daysUntil(b.deadline))
-    .slice(0, 12);
-
-  if (!dated.length) {
-    els.deadlineCalendar.append(createText("div", "empty-state compact", "Нет проектов с указанным дедлайном."));
-    return;
-  }
-
-  dated.forEach((project) => {
-    const due = daysUntil(project.deadline);
-    const item = document.createElement("article");
-    item.className = `calendar-item ${due <= 14 ? "is-urgent" : due <= 30 ? "is-soon" : ""}`.trim();
-    item.append(createText("time", "", formatDate(project.deadline)));
-    const text = document.createElement("div");
-    text.append(createText("strong", "", project.name));
-    text.append(createText("span", "", project.grant || project.direction || "Маршрут не указан"));
-    item.append(text);
-    item.append(createText("small", "", due >= 0 ? `${due} дн.` : "срок прошел"));
-    els.deadlineCalendar.append(item);
-  });
-}
-
-function loadFilterPresets() {
-  return readJson(FILTER_PRESETS_KEY, []);
-}
-
-function renderSavedFilters() {
-  const presets = loadFilterPresets();
-  els.savedFilters.innerHTML = '<option value="">Выбрать набор</option>';
-  presets.forEach((preset, index) => {
-    const option = document.createElement("option");
-    option.value = String(index);
-    option.textContent = preset.name;
-    els.savedFilters.append(option);
-  });
-}
-
-function saveCurrentFilter() {
-  const presets = loadFilterPresets();
-  const name = `Фильтр ${presets.length + 1}: ${new Date().toLocaleDateString("ru-RU")}`;
-  presets.unshift({
-    name,
-    query: state.query,
-    direction: state.direction,
-    status: state.status,
-    deadline: state.deadline,
-    preset: state.preset,
-    sortBy: state.sortBy,
-    sortDir: state.sortDir,
-  });
-  writeJson(FILTER_PRESETS_KEY, presets.slice(0, 8));
-  renderSavedFilters();
-  showToast(`Сохранен набор: ${name}`);
-}
-
-function applySavedFilter(index) {
-  const preset = loadFilterPresets()[Number(index)];
-  if (!preset) return;
-  state.query = preset.query || "";
-  state.direction = preset.direction || "all";
-  state.status = preset.status || "all";
-  state.deadline = preset.deadline || "all";
-  state.sortBy = preset.sortBy || "deadline";
-  state.sortDir = preset.sortDir || "asc";
-  els.search.value = state.query;
-  els.direction.value = state.direction;
-  els.status.value = state.status;
-  els.deadline.value = state.deadline;
-  els.sortBy.value = state.sortBy;
-  els.sortDir.value = state.sortDir;
-  setQuickPreset(preset.preset || "all");
-  render();
-  showToast(`Применен набор: ${preset.name}`);
-}
-
-function csvEscape(value) {
-  return `"${String(value || "").replaceAll('"', '""')}"`;
-}
-
-function exportProjectsCsv() {
-  const rows = filteredProjects();
-  const header = ["Проект", "Направление", "Команда", "Статус", "Приоритет", "Грант", "Дедлайн", "Готовность", "Следующее действие"];
-  const lines = [
-    header.map(csvEscape).join(";"),
-    ...rows.map((project) => [
-      project.name,
-      project.direction,
-      project.owner,
-      project.status,
-      project.priority,
-      project.grant,
-      project.deadline,
-      packageReadiness(project),
-      project.nextStep,
-    ].map(csvEscape).join(";")),
-  ];
-  const blob = new Blob([`\ufeff${lines.join("\n")}`], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `technopark-projects-${new Date().toISOString().slice(0, 10)}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
-  showToast(`Экспортировано проектов: ${rows.length}`);
-}
-
-function normalizeFeedback(item) {
-  return {
-    id: item.id || item.rowId || `local-${Date.now()}`,
-    createdAt: item.createdAt || item.date || new Date().toISOString(),
-    author: item.author || "",
-    role: item.role || "",
-    project: item.project || item.projectName || "",
-    category: item.category || "Другое",
-    priority: item.priority || "Средний",
-    message: item.message || "",
-    status: item.status || "Новое",
-    response: item.response || "",
-    source: item.source || "site",
-  };
-}
-
-function feedbackPriorityClass(priority) {
-  const key = normalizeKey(priority);
-  if (key.includes("срочно")) return "priority-urgent";
-  if (key.includes("выс")) return "priority-high";
-  if (key.includes("низ")) return "priority-low";
-  return "priority-medium";
-}
-
-function feedbackStatusClass(status) {
-  const key = normalizeKey(status);
-  if (key.includes("учт")) return "status-done";
-  if (key.includes("работ")) return "status-work";
-  if (key.includes("отклон")) return "status-rejected";
-  if (key.includes("обсуж")) return "status-discuss";
-  return "status-new";
-}
-
-function populateFeedbackProjects() {
-  if (!els.feedbackProject) return;
-  const current = els.feedbackProject.value;
-  els.feedbackProject.innerHTML = '<option value="">Ко всему портфелю</option>';
-  state.projects.forEach((project) => {
-    const option = document.createElement("option");
-    option.value = project.name;
-    option.textContent = project.name;
-    els.feedbackProject.append(option);
-  });
-  els.feedbackProject.value = current && state.projects.some((project) => project.name === current) ? current : "";
-}
-
-function createFeedbackCard(item) {
-  const card = document.createElement("article");
-  card.className = `feedback-message ${feedbackPriorityClass(item.priority)}`;
-  const meta = document.createElement("div");
-  meta.className = "feedback-meta";
-  meta.append(createText("strong", "", item.author || "Автор не указан"));
-  meta.append(createText("span", "", item.createdAt ? new Date(item.createdAt).toLocaleString("ru-RU") : ""));
-  const body = createText("p", "message-bubble", item.message || "Без текста");
-  const tags = document.createElement("div");
-  tags.className = "feedback-tags";
-  [item.project || "Весь портфель", item.category, item.priority].filter(Boolean).forEach((value) => tags.append(createText("span", "", value)));
-  tags.append(createText("span", `feedback-status ${feedbackStatusClass(item.status)}`, item.status || "Новое"));
-  card.append(meta, body, tags);
-  if (item.response) card.append(createText("small", "feedback-response", item.response));
-  return card;
-}
-
-function renderNtsFeedback() {
-  if (!els.feedbackList) return;
-  els.feedbackList.replaceChildren();
-  const items = state.ntsFeedback;
-  if (els.feedbackStatus) {
-    els.feedbackStatus.textContent = items.length
-      ? `Показано пожеланий НТС: ${items.length}`
-      : "Пока нет пожеланий НТС. Первое сообщение можно добавить через форму выше.";
-  }
-  if (!items.length) {
-    els.feedbackList.append(createText("div", "empty-state", "Пока нет пожеланий НТС. Первое сообщение можно добавить через форму выше."));
-    if (els.latestFeedback) {
-      els.latestFeedback.replaceChildren();
-      els.latestFeedback.append(createText("div", "empty-state", "Пока нет пожеланий НТС."));
-    }
-    return;
-  }
-  items.forEach((item) => els.feedbackList.append(createFeedbackCard(item)));
-  if (els.latestFeedback) {
-    els.latestFeedback.replaceChildren();
-    if (!items.length) {
-      els.latestFeedback.append(createText("div", "empty-state", "Пока нет пожеланий НТС."));
-    } else {
-      items.slice(0, 3).forEach((item) => els.latestFeedback.append(createFeedbackCard(item)));
-    }
-  }
-}
-
-function renderProjectFeedback(project) {
-  const wrap = document.createElement("section");
-  wrap.className = "drawer-feedback";
-  const head = document.createElement("div");
-  head.className = "drawer-section-head";
-  head.append(createText("h3", "", "Пожелания НТС по проекту"));
-  const add = createText("button", "text-action", "Добавить пожелание по проекту");
-  add.type = "button";
-  add.addEventListener("click", () => {
-    switchView("nts-feedback");
-    state.selectedFeedbackProject = project.name;
-    if (els.feedbackProject) els.feedbackProject.value = project.name;
-    closeProjectDrawer();
-    els.feedbackForm?.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-  head.append(add);
-  wrap.append(head);
-  const items = state.ntsFeedback.filter((item) => normalizeKey(item.project) === normalizeKey(project.name)).slice(0, 5);
-  if (!items.length) {
-    wrap.append(createText("p", "muted", "По этому проекту пока нет замечаний или предложений НТС."));
-  } else {
-    const list = document.createElement("div");
-    list.className = "drawer-feedback-list";
-    items.forEach((item) => list.append(createFeedbackCard(item)));
-    wrap.append(list);
-  }
-  return wrap;
-}
-
-async function loadNtsFeedback() {
-  state.feedbackLoading = true;
-  const scriptUrl = localStorage.getItem(SCRIPT_URL_KEY) || DEFAULT_SCRIPT_URL;
-  try {
-    const response = await fetch(`${scriptUrl}?action=list_nts_feedback&limit=100`);
-    const data = await response.json();
-    state.ntsFeedback = (data.feedback || []).map(normalizeFeedback);
-    saveLocalFeedback(state.ntsFeedback);
-  } catch {
-    state.ntsFeedback = loadLocalFeedback().map(normalizeFeedback);
-    if (els.feedbackStatus) els.feedbackStatus.textContent = "Google Таблица временно недоступна. Показаны локальные черновики.";
-  } finally {
-    state.feedbackLoading = false;
-    renderNtsFeedback();
-  }
-}
-
-async function submitNtsFeedback(event) {
+async function submitFeedback(event) {
   event.preventDefault();
-  const form = event.currentTarget;
-  const data = Object.fromEntries(new FormData(form).entries());
-  if (!data.author || !data.message) {
-    els.feedbackError.textContent = "Укажите автора и текст пожелания.";
-    return;
-  }
-  els.feedbackError.textContent = "";
-  const item = normalizeFeedback({ ...data, status: "Новое", source: "site" });
-  state.ntsFeedback.unshift(item);
-  saveLocalFeedback(state.ntsFeedback);
-  renderNtsFeedback();
-  form.message.value = "";
-  const scriptUrl = localStorage.getItem(SCRIPT_URL_KEY) || DEFAULT_SCRIPT_URL;
+  const button = els.ntsForm.querySelector("button[type='submit']");
+  const formData = new FormData(els.ntsForm);
+  const payload = {
+    action: "add_nts_feedback",
+    formKey: CONFIG.formKey,
+    author: formData.get("author"),
+    role: formData.get("role"),
+    project: formData.get("project"),
+    type: formData.get("type"),
+    category: formData.get("type"),
+    priority: formData.get("priority"),
+    message: formData.get("message"),
+    status: "новое",
+    section: "Пожелания НТС",
+    source: "site-v3",
+    userAgent: navigator.userAgent,
+    createdAt: new Date().toISOString(),
+  };
+
+  els.formNote.textContent = "Отправляю пожелание в Google Таблицу...";
+  els.formNote.classList.remove("error");
+  button.disabled = true;
+
   try {
-    await fetch(scriptUrl, {
+    const response = await fetch(CONFIG.scriptUrl, {
       method: "POST",
-      mode: "no-cors",
+      mode: "cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "add_nts_feedback", confirmCode: CONFIRM_CODE, ...item }),
+      body: JSON.stringify(payload),
     });
-    showToast("Пожелание НТС сохранено.");
-  } catch {
-    showToast("Google Таблица недоступна. Пожелание сохранено локально как черновик.", "error");
+    const result = await response.json().catch(() => ({ ok: response.ok }));
+    if (!response.ok || result.ok === false) throw new Error(result.error || "Ошибка записи в таблицу");
+    els.ntsForm.reset();
+    els.formNote.textContent = "Пожелание отправлено. Статус обработки: новое.";
+    showToast("Пожелание отправлено");
+    state.feedback.unshift({ ...payload, date: new Date().toLocaleString("ru-RU") });
+    renderFeedback();
+    renderAttention();
+  } catch (error) {
+    els.formNote.textContent = `Не удалось отправить пожелание: ${error.message}. Проверьте публикацию Apps Script как Web App.`;
+    els.formNote.classList.add("error");
+    showToast("Ошибка отправки пожелания", "error");
+  } finally {
+    button.disabled = false;
   }
 }
 
-function projectSummaryText(project) {
-  const details = packageDetails(project);
-  const risk = riskStatus(project);
-  return [
-    `${project.name}`,
-    `Ответственный: ${project.owner || "не назначен"}`,
-    `Направление: ${project.direction || "не указано"}`,
-    `Статус: ${project.status || "не указан"}`,
-    `Грант/маршрут: ${project.grant || "не выбран"}`,
-    `Дедлайн: ${project.deadline ? formatDate(project.deadline) : "не указан"}`,
-    `Готовность пакета: ${details.percent}%`,
-    `Риск: ${risk.label} - ${risk.reason}`,
-    `Не хватает: ${details.missing.length ? details.missing.join(", ") : "ключевых пробелов нет"}`,
-    `Следующий шаг: ${details.nextStep || "нужно назначить"}`,
-  ].join("\n");
-}
-
-async function copyProjectSummary(project) {
-  const text = projectSummaryText(project);
-  try {
-    await navigator.clipboard.writeText(text);
-    showToast("Сводка по проекту скопирована.");
-  } catch {
-    console.info(text);
-    showToast("Браузер не дал доступ к буферу. Сводка выведена в консоль.", "error");
-  }
-}
-
-function drawerField(label, value) {
-  const item = document.createElement("div");
-  item.className = "drawer-field";
-  item.append(createText("span", "", label));
-  item.append(createText("strong", "", value || "Не указано"));
-  return item;
-}
-
-function drawerControl({ label, name, value = "", type = "text", options = null, wide = false }) {
-  const wrap = document.createElement("label");
-  wrap.className = wide ? "drawer-control wide" : "drawer-control";
-  wrap.append(createText("span", "", label));
-  let field;
-  if (options) {
-    field = document.createElement("select");
-    options.forEach((option) => {
-      const node = document.createElement("option");
-      node.value = option;
-      node.textContent = option || "Не указано";
-      field.append(node);
-    });
-  } else if (type === "textarea") {
-    field = document.createElement("textarea");
-    field.rows = 3;
-  } else {
-    field = document.createElement("input");
-    field.type = type;
-  }
-  field.name = name;
-  field.value = value || "";
-  wrap.append(field);
-  return wrap;
-}
-
-function renderProjectEditForm(project) {
-  const pack = packageByProject(project) || {};
-  const form = document.createElement("form");
-  form.className = "drawer-edit-form";
-  form.append(createText("h3", "", "Редактирование проекта"));
-
-  const grid = document.createElement("div");
-  grid.className = "drawer-form-grid";
-  [
-    { label: "Название", name: "name", value: project.name, wide: true },
-    { label: "Ответственный", name: "owner", value: project.owner },
-    { label: "Направление", name: "direction", value: project.direction },
-    { label: "Статус", name: "status", value: project.status, options: STATUSES },
-    { label: "Приоритет", name: "priority", value: project.priority, options: ["Высокий", "Средний", "Низкий", ""] },
-    { label: "УТГ / TRL", name: "trl", value: project.trl, options: ["", "1", "2", "3", "4", "5", "6", "7", "8", "9"] },
-    { label: "Грант / маршрут", name: "grant", value: project.grant, wide: true },
-    { label: "Дедлайн", name: "deadline", value: project.deadline, type: "date" },
-    { label: "Бюджет", name: "budget", value: project.budget },
-    { label: "Готовность, %", name: "readiness", value: String(packageReadiness(project)), type: "number" },
-    { label: "Следующий шаг", name: "nextStep", value: project.nextStep, type: "textarea", wide: true },
-    { label: "Блокер / примечание", name: "note", value: project.note, type: "textarea", wide: true },
-  ].forEach((config) => grid.append(drawerControl(config)));
-
-  const packageTitle = createText("h3", "drawer-subtitle", "Пакет подачи");
-  const packageGrid = document.createElement("div");
-  packageGrid.className = "drawer-form-grid";
-  [
-    { label: "Паспорт", name: "passport", value: pack.passport, options: ["Есть", "Частично", "В работе", "Нет", ""] },
-    { label: "Проблема и эффект", name: "problem", value: pack.problem, options: ["Есть", "Частично", "В работе", "Нет", ""] },
-    { label: "MVP / прототип", name: "mvp", value: pack.mvp, options: ["Есть", "Частично", "В работе", "Нет", ""] },
-    { label: "Пилот / письма", name: "pilot", value: pack.pilot, options: ["Есть", "Частично", "В работе", "Нет", ""] },
-    { label: "Смета", name: "estimate", value: pack.estimate, options: ["Есть", "Частично", "В работе", "Нет", ""] },
-    { label: "Презентация", name: "presentation", value: pack.presentation, options: ["Есть", "Частично", "В работе", "Нет", ""] },
-    { label: "Юрконтур", name: "legal", value: pack.legal, options: ["Есть", "Частично", "В работе", "Нет", ""] },
-  ].forEach((config) => packageGrid.append(drawerControl(config)));
-
-  const confirm = drawerControl({ label: "Код подтверждения", name: "confirmCode", value: "", type: "password", wide: true });
-  const confirmInput = confirm.querySelector("input");
-  confirmInput.inputMode = "numeric";
-  confirmInput.maxLength = 8;
-  confirm.append(createText("small", "", "Для сохранения изменений в Google Таблицу введите 11111111."));
-
-  const error = createText("p", "form-error", "");
-  const actions = document.createElement("div");
-  actions.className = "drawer-form-actions";
-  const cancel = createText("button", "ghost-action", "Отменить");
-  cancel.type = "button";
-  cancel.addEventListener("click", () => openProjectDrawer(project));
-  const save = createText("button", "primary-action", "Сохранить в таблицу");
-  save.type = "submit";
-  actions.append(cancel, save);
-
-  form.append(grid, packageTitle, packageGrid, confirm, error, actions);
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const data = Object.fromEntries(new FormData(form).entries());
-    if (data.confirmCode !== CONFIRM_CODE) {
-      error.textContent = "Неверный код подтверждения. Изменения не внесены.";
-      showToast("Изменения остановлены: нужен правильный код подтверждения.", "error");
-      return;
-    }
-
-    const updatedProject = normalizeProject({ ...project, ...data, id: project.id });
-    const packageValues = {
-      exists: Boolean(packageByProject(project)),
-      passport: data.passport,
-      problem: data.problem,
-      mvp: data.mvp,
-      pilot: data.pilot,
-      estimate: data.estimate,
-      presentation: data.presentation,
-      legal: data.legal,
-      nextStep: data.nextStep,
-    };
-    const updatedPackage = applyPackageUpdate(updatedProject, packageValues);
-    const savedProject = applyProjectUpdate({ ...updatedProject, readiness: packageDetailsFromItem(updatedPackage).percent });
-    openProjectDrawer(savedProject);
-    setSyncState("Изменения применены на сайте. Отправляю в Google Таблицу...");
-
-    try {
-      await updateProjectInSheet(savedProject, data.confirmCode);
-      await updatePackageInSheet(savedProject, packageValues, data.confirmCode);
-      setSyncState("Изменения отправлены в Google Таблицу через Apps Script.", "ok");
-      showToast("Изменения сохранены и отправлены в таблицу.");
-    } catch {
-      setSyncState("Изменения сохранены локально, но отправка в таблицу не удалась.", "error");
-      showToast("Проверьте доступ к Apps Script. Локально изменения сохранены.", "error");
-    }
+function setupNavigation() {
+  els.menuToggle.addEventListener("click", () => {
+    const open = !els.mainNav.classList.contains("is-open");
+    els.mainNav.classList.toggle("is-open", open);
+    document.body.classList.toggle("menu-open", open);
+    els.menuToggle.setAttribute("aria-expanded", String(open));
   });
+  els.navLinks.forEach((link) => link.addEventListener("click", () => {
+    els.mainNav.classList.remove("is-open");
+    document.body.classList.remove("menu-open");
+    els.menuToggle.setAttribute("aria-expanded", "false");
+  }));
 
-  return form;
-}
-
-function openProjectDrawer(project) {
-  const details = packageDetails(project);
-  const risk = riskStatus(project);
-  els.drawerContent.replaceChildren();
-
-  const head = document.createElement("header");
-  head.className = "drawer-head";
-  head.append(renderRiskBadge(project));
-  head.append(createText("h2", "", project.name));
-  head.append(createText("p", "", risk.reason));
-
-  const grid = document.createElement("div");
-  grid.className = "drawer-grid";
-  [
-    ["Ответственный", project.owner],
-    ["Направление", project.direction],
-    ["Статус", project.status],
-    ["Приоритет", project.priority],
-    ["УТГ / TRL", project.trl],
-    ["Грант / конкурс", project.grant],
-    ["Дедлайн", project.deadline ? formatDate(project.deadline) : ""],
-    ["Бюджет", project.budget],
-  ].forEach(([label, value]) => grid.append(drawerField(label, value)));
-
-  const readiness = document.createElement("section");
-  readiness.className = "drawer-readiness";
-  readiness.append(createText("span", "", "Готовность пакета подачи"));
-  readiness.append(createText("strong", "", `${details.percent}%`));
-  readiness.append(renderProgress(details.percent));
-  readiness.append(createText("p", "", `Проект готов к подаче на ${details.percent}%. Не хватает: ${details.missing.length ? details.missing.join(", ") : "ключевых элементов нет"}.`));
-
-  const missing = document.createElement("div");
-  missing.className = "missing-list";
-  details.elements.forEach((item) => {
-    const chip = createText("span", item.score === 100 ? "is-ready" : item.score === 50 ? "is-partial" : "is-missing", `${item.label}: ${item.score}%`);
-    missing.append(chip);
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (!visible) return;
+    els.navLinks.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${visible.target.id}`));
+  }, { threshold: 0.28 });
+  ["overview", "projects", "grants", "funnel", "nts"].forEach((id) => {
+    const section = document.getElementById(id);
+    if (section) observer.observe(section);
   });
-
-  const next = drawerField("Следующий шаг", details.nextStep || project.nextStep);
-  const copy = createText("button", "primary-action", "Скопировать сводку по проекту");
-  copy.type = "button";
-  copy.addEventListener("click", () => copyProjectSummary(project));
-  const edit = createText("button", "ghost-action", "Редактировать проект");
-  edit.type = "button";
-  edit.addEventListener("click", () => {
-    els.drawerContent.replaceChildren();
-    const editHead = document.createElement("header");
-    editHead.className = "drawer-head";
-    editHead.append(createText("h2", "drawer-edit-title", project.name));
-    editHead.append(createText("p", "", "Изменения сохраняются в Google Таблицу только после ввода кода подтверждения."));
-    els.drawerContent.append(editHead, renderProjectEditForm(project));
-  });
-  const management = document.createElement("div");
-  management.className = "drawer-actions";
-  management.append(edit, copy);
-
-  els.drawerContent.append(head, grid, readiness, missing, next, renderProjectFeedback(project), management);
-  els.drawer.classList.add("is-open");
-  els.drawer.setAttribute("aria-hidden", "false");
-  document.body.classList.add("drawer-open");
-  els.closeDrawer.focus();
-}
-
-function closeProjectDrawer() {
-  els.drawer.classList.remove("is-open");
-  els.drawer.setAttribute("aria-hidden", "true");
-  document.body.classList.remove("drawer-open");
-}
-
-function render() {
-  const projects = filteredProjects();
-  renderFilterSummary(projects);
-  renderMetrics(projects);
-  renderPortfolioHealth(projects);
-  renderAnalytics(projects);
-  renderDeadlineCalendar(projects);
-  renderExecutiveSummary(projects);
-  renderTimeline(projects);
-  renderActions(projects);
-  renderPortfolioMap(projects);
-  renderLeadershipActions(projects);
-  renderProjectInsights(projects);
-  renderGrantInsights();
-  renderPackageSummary();
-  renderTable(projects);
-  renderMobileCards(projects);
-  renderPackages();
-  renderGrantWindows();
-  renderBoard(projects);
-}
-
-async function submitToSheet(project) {
-  const scriptUrl = localStorage.getItem(SCRIPT_URL_KEY) || DEFAULT_SCRIPT_URL;
-  if (!scriptUrl) return false;
-
-  await fetch(scriptUrl, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({
-      action: "add_project",
-      ...project,
-      project: project.name,
-      funding: project.grant,
-      nextAction: project.nextStep,
-    }),
-  });
-
-  return true;
-}
-
-async function updateProjectInSheet(project, confirmCode) {
-  const scriptUrl = localStorage.getItem(SCRIPT_URL_KEY) || DEFAULT_SCRIPT_URL;
-  if (!scriptUrl) return false;
-
-  await fetch(scriptUrl, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({
-      action: project.id ? "update_project" : "add_project",
-      confirmCode,
-      id: project.id,
-      project: project.name,
-      name: project.name,
-      direction: project.direction,
-      contour: project.contour,
-      priority: project.priority,
-      trl: project.trl,
-      stage: project.stage,
-      owner: project.owner,
-      status: project.status,
-      funding: project.grant,
-      grant: project.grant,
-      deadline: project.deadline,
-      budget: project.budget,
-      readiness: project.readiness,
-      nextAction: project.nextStep,
-      nextStep: project.nextStep,
-      note: project.note,
-    }),
-  });
-
-  return true;
-}
-
-async function updatePackageInSheet(project, packageValues, confirmCode) {
-  const scriptUrl = localStorage.getItem(SCRIPT_URL_KEY) || DEFAULT_SCRIPT_URL;
-  if (!scriptUrl) return false;
-  const details = packageDetailsFromItem(packageValues);
-
-  await fetch(scriptUrl, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({
-      action: packageValues.exists ? "update_package" : "add_package_row",
-      confirmCode,
-      id: project.id,
-      project: project.name,
-      route: project.grant || packageValues.route || "",
-      owner: project.owner || packageValues.owner || "",
-      passport: packageValues.passport,
-      problem: packageValues.problem,
-      mvp: packageValues.mvp,
-      pilot: packageValues.pilot,
-      estimate: packageValues.estimate,
-      presentation: packageValues.presentation,
-      legal: packageValues.legal,
-      readiness: `${details.percent}%`,
-      nextStep: packageValues.nextStep || project.nextStep || "",
-    }),
-  });
-
-  return true;
-}
-
-function applyProjectUpdate(project) {
-  const normalized = normalizeProject(project);
-  const index = state.projects.findIndex((item) =>
-    (normalized.id && item.id && String(item.id) === String(normalized.id)) || projectKey(item) === projectKey(normalized)
-  );
-  if (index >= 0) {
-    state.projects[index] = { ...state.projects[index], ...normalized };
-  } else {
-    state.projects.unshift(normalized);
-  }
-  updateLocalProject(normalized);
-  saveDataCache();
-  populateDirections();
-  render();
-  return normalized;
-}
-
-function applyPackageUpdate(project, values) {
-  const current = packageByProject(project);
-  const packageRow = {
-    ...(current || {}),
-    id: project.id || current?.id || "",
-    project: project.name,
-    route: project.grant || current?.route || "",
-    owner: project.owner || current?.owner || "",
-    passport: values.passport,
-    problem: values.problem,
-    mvp: values.mvp,
-    pilot: values.pilot,
-    estimate: values.estimate,
-    presentation: values.presentation,
-    legal: values.legal,
-    nextStep: values.nextStep || project.nextStep || "",
-  };
-  packageRow.readiness = `${packageDetailsFromItem(packageRow).percent}%`;
-  const index = state.packages.findIndex((item) =>
-    (packageRow.id && item.id && String(item.id) === String(packageRow.id)) || normalizeKey(item.project) === normalizeKey(packageRow.project)
-  );
-  if (index >= 0) {
-    state.packages[index] = packageRow;
-  } else {
-    state.packages.unshift(packageRow);
-  }
-  saveDataCache();
-  render();
-  return packageRow;
-}
-
-function switchView(viewId) {
-  els.tabs.forEach((item) => item.classList.toggle("is-active", item.dataset.view === viewId));
-  els.views.forEach((view) => view.classList.toggle("active-section", view.id === viewId));
-  const titleMap = {
-    dashboard: "Обзор",
-    projects: "Проекты",
-    grants: "Грантовая воронка",
-    package: "Пакет подачи",
-    "nts-feedback": "Пожелания НТС",
-    settings: "Настройки",
-  };
-  if (els.currentSectionTitle) els.currentSectionTitle.textContent = titleMap[viewId] || "Обзор";
-}
-
-function resetFilters() {
-  state.query = "";
-  state.direction = "all";
-  state.status = "all";
-  state.deadline = "all";
-  state.sortBy = "deadline";
-  state.sortDir = "asc";
-  setQuickPreset("all");
-  els.search.value = "";
-  els.direction.value = "all";
-  els.status.value = "all";
-  els.deadline.value = "all";
-  els.sortBy.value = "deadline";
-  els.sortDir.value = "asc";
-  render();
 }
 
 function setupEvents() {
-  els.tabs.forEach((tab) => {
-    tab.addEventListener("click", () => switchView(tab.dataset.view));
-  });
-
-  els.jumpButtons.forEach((button) => {
-    button.addEventListener("click", () => switchView(button.dataset.jump));
-  });
-
-  els.search.addEventListener("input", (event) => {
-    state.query = event.target.value;
-    if (els.topSearch && els.topSearch.value !== event.target.value) els.topSearch.value = event.target.value;
-    render();
-  });
-  els.topSearch?.addEventListener("input", (event) => {
-    state.query = event.target.value;
-    els.search.value = event.target.value;
-    render();
-  });
-  els.proxyButtons.forEach((button) => {
-    button.addEventListener("click", () => document.querySelector(`#${button.dataset.proxyClick}`)?.click());
-  });
-  els.direction.addEventListener("change", (event) => {
-    state.direction = event.target.value;
-    render();
-  });
-  els.status.addEventListener("change", (event) => {
-    state.status = event.target.value;
-    render();
-  });
-  els.deadline.addEventListener("change", (event) => {
-    state.deadline = event.target.value;
-    render();
-  });
-  els.sortBy.addEventListener("change", (event) => {
-    state.sortBy = event.target.value;
-    render();
-  });
-  els.sortDir.addEventListener("change", (event) => {
-    state.sortDir = event.target.value;
-    render();
-  });
-  els.refresh.addEventListener("click", loadProjects);
-  els.reloadFeedback?.addEventListener("click", loadNtsFeedback);
-  els.feedbackForm?.addEventListener("submit", submitNtsFeedback);
-  els.copyBrief.addEventListener("click", copyBriefToClipboard);
-  els.exportCsv.addEventListener("click", exportProjectsCsv);
-  els.saveFilter.addEventListener("click", saveCurrentFilter);
-  els.savedFilters.addEventListener("change", (event) => applySavedFilter(event.target.value));
-  els.closeDrawer.addEventListener("click", closeProjectDrawer);
-  els.drawerBackdrop.addEventListener("click", closeProjectDrawer);
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && els.drawer.classList.contains("is-open")) closeProjectDrawer();
-  });
-  els.quickFilters.forEach((button) => {
-    button.addEventListener("click", () => {
-      setQuickPreset(button.dataset.preset || "all");
-      render();
-    });
-  });
-  els.clearFilters.addEventListener("click", resetFilters);
-  els.presentationMode.addEventListener("click", () => {
-    document.body.classList.toggle("presentation");
-    const enabled = document.body.classList.contains("presentation");
-    if (enabled) switchView("dashboard");
-    els.presentationMode.textContent = enabled ? "Обычный режим" : "Режим доклада";
-    showToast(enabled ? "Включен режим доклада." : "Включен обычный режим.");
-  });
-
-  els.openDialog.addEventListener("click", () => {
-    setConfirmError();
-    els.dialog.showModal();
-  });
-  els.closeDialog.addEventListener("click", () => els.dialog.close());
-  els.cancelDialog.addEventListener("click", () => els.dialog.close());
-  els.confirmCode.addEventListener("input", () => setConfirmError());
-
-  els.form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const formData = new FormData(els.form);
-    const rawProject = Object.fromEntries(formData.entries());
-
-    if (rawProject.confirmCode !== CONFIRM_CODE) {
-      setConfirmError("Неверный код подтверждения. Изменения не внесены.");
-      els.confirmCode.focus();
-      showToast("Запись остановлена: нужен правильный код подтверждения.");
-      return;
-    }
-
-    const project = normalizeProject(rawProject);
-    project.createdAt = new Date().toISOString();
-    const submission = { ...project, confirmCode: rawProject.confirmCode };
-
-    const localProjects = loadLocalProjects();
-    localProjects.unshift(project);
-    saveLocalProjects(localProjects);
-    state.projects = mergeProjects([project], state.projects);
-    render();
-    els.dialog.close();
-    els.form.reset();
-    setConfirmError();
-    setSyncState("Проект добавлен. Отправляю запись в Google Таблицу...");
-
-    try {
-      await submitToSheet(submission);
-      setSyncState("Проект отправлен в Google Таблицу через Apps Script.", "ok");
-      showToast("Проект добавлен и отправлен в таблицу.");
-    } catch {
-      setSyncState("Проект сохранен локально, но запись в таблицу не удалась.", "error");
-      showToast("Проект сохранен локально. Проверьте доступ к Apps Script.");
-    }
-  });
-
-  els.saveSettings.addEventListener("click", () => {
-    const value = els.scriptUrl.value.trim() || DEFAULT_SCRIPT_URL;
-    localStorage.setItem(SCRIPT_URL_KEY, value);
-    els.scriptUrl.value = value;
-    setSyncState("Настройки связи сохранены.", "ok");
-    showToast("Связь с Apps Script сохранена.");
-  });
+  els.refreshData.addEventListener("click", loadAllData);
+  [els.searchInput, els.statusFilter, els.ownerFilter, els.readinessFilter, els.riskFilter].forEach((el) => el.addEventListener("input", handleFilters));
+  els.ntsForm.addEventListener("submit", submitFeedback);
 }
 
-function initSettings() {
-  els.sheetId.value = SHEET.id;
-  els.sheetGid.value = SHEET.gid;
-  els.scriptUrl.value = localStorage.getItem(SCRIPT_URL_KEY) || DEFAULT_SCRIPT_URL;
-  renderSavedFilters();
-}
-
-initSettings();
+setupNavigation();
 setupEvents();
-loadProjects();
-loadNtsFeedback();
+loadAllData();
