@@ -44,6 +44,24 @@ a { color: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 :focus-visible { outline: 3px solid rgba(37, 99, 235, 0.25); outline-offset: 3px; }
 
+/* 1. УЛУЧШЕНИЕ: Плавные переходы для всех интерактивных элементов */
+* { transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease; }
+
+/* 2. УЛУЧШЕНИЕ: Анимация загрузки для скелетов и placeholder'ов */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+.is-loading { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.skeleton { background: linear-gradient(90deg, var(--surface-soft) 25%, var(--line) 50%, var(--surface-soft) 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
 .skip-link {
   position: fixed;
   left: 16px;
@@ -72,6 +90,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
   border-bottom: 1px solid rgba(226, 232, 240, 0.9);
   background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(18px);
+  /* 3. УЛУЧШЕНИЕ: Усиленная тень шапки при скролле */
+  box-shadow: 0 0 0 rgba(15, 23, 42, 0);
+}
+.top-shell.scrolled {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
 }
 .brand {
   display: inline-flex;
@@ -183,10 +206,15 @@ h3 { margin: 0; font-size: 18px; line-height: 1.2; }
   text-decoration: none;
   font-weight: 800;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
+/* 4. УЛУЧШЕНИЕ: Лучшие эффекты наведения на кнопки */
 .button.primary { border-color: var(--text); color: white; background: var(--text); }
-.button.primary:hover { background: #1e293b; }
-.button.ghost:hover { border-color: var(--line-strong); background: var(--surface-soft); }
+.button.primary:hover { background: #1e293b; box-shadow: 0 8px 16px rgba(15, 23, 42, 0.2); transform: translateY(-1px); }
+.button.primary:active { transform: translateY(0); box-shadow: 0 4px 8px rgba(15, 23, 42, 0.15); }
+.button.ghost { border-color: var(--line); }
+.button.ghost:hover { border-color: var(--line-strong); background: var(--surface-soft); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08); transform: translateY(-1px); }
+.button.ghost:active { transform: translateY(0); }
 .button.wide { width: 100%; }
 
 .hero-panel {
@@ -237,6 +265,8 @@ h3 { margin: 0; font-size: 18px; line-height: 1.2; }
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-soft);
+  /* 5. УЛУЧШЕНИЕ: Плавные переходы для карточек */
+  transition: all 0.25s cubic-bezier(0.32, 0.72, 0, 1);
 }
 .feature-card {
   display: grid;
@@ -244,8 +274,19 @@ h3 { margin: 0; font-size: 18px; line-height: 1.2; }
   min-height: 164px;
   padding: 22px;
   text-decoration: none;
+  cursor: pointer;
 }
-.feature-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+/* 5. УЛУЧШЕНИЕ: Усиленный эффект наведения на карточки */
+.feature-card:hover { 
+  transform: translateY(-4px); 
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.16);
+  border-color: var(--blue);
+}
+.project-card:hover, .grant-card:hover, .funnel-stage:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  border-color: rgba(37, 99, 235, 0.3);
+}
 .feature-card span { color: var(--blue); font-weight: 900; }
 .feature-card strong { font-size: 24px; letter-spacing: -0.03em; }
 .feature-card small { color: var(--muted); line-height: 1.45; }
@@ -307,11 +348,21 @@ input, select, textarea {
   color: var(--text);
   background: white;
   outline: none;
+  /* 6. УЛУЧШЕНИЕ: Плавные переходы для полей форм */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 textarea { resize: vertical; }
+/* 6. УЛУЧШЕНИЕ: Лучшие focus-состояния для полей формы с анимацией */
 input:focus, select:focus, textarea:focus {
-  border-color: rgba(37, 99, 235, 0.65);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12), inset 0 0 0 1px rgba(37, 99, 235, 0.05);
+  background-color: #fbfcff;
+}
+input:invalid, select:invalid, textarea:invalid {
+  border-color: var(--red);
+}
+input:invalid:focus, select:invalid:focus, textarea:invalid:focus {
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
 }
 
 .section { scroll-margin-top: 108px; margin-top: 42px; }
@@ -331,12 +382,19 @@ input:focus, select:focus, textarea:focus {
   font-weight: 850;
   background: var(--surface-soft);
   color: var(--gray);
+  /* 7. УЛУЧШЕНИЕ: Плавная анимация для смены статусов */
+  animation: slideIn 0.3s ease-out;
 }
-.badge.blue { color: var(--blue-dark); background: var(--surface-blue); }
-.badge.green { color: #166534; background: var(--green-soft); }
-.badge.yellow { color: #7c4a03; background: var(--yellow-soft); }
-.badge.red { color: #991b1b; background: var(--red-soft); }
-.badge.gray { color: #475569; background: #eef2f7; }
+@keyframes slideIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+/* 7. УЛУЧШЕНИЕ: Улучшенный контраст для значков с лучшей читаемостью */
+.badge.blue { color: #0c3a8a; background: #dbe9ff; border: 1px solid rgba(37, 99, 235, 0.2); }
+.badge.green { color: #165e28; background: #d1fad8; border: 1px solid rgba(22, 163, 74, 0.2); }
+.badge.yellow { color: #92400e; background: #fef3c7; border: 1px solid rgba(183, 121, 31, 0.2); }
+.badge.red { color: #991b1b; background: #fee2e2; border: 1px solid rgba(220, 38, 38, 0.2); }
+.badge.gray { color: #1f2937; background: #f3f4f6; border: 1px solid rgba(100, 116, 139, 0.1); }
 .card-text { color: var(--muted); line-height: 1.45; }
 .progress-track {
   width: 100%;

@@ -581,6 +581,24 @@ function setupEvents() {
   els.ntsForm.addEventListener("submit", submitFeedback);
 }
 
+/* UX улучшение 3: Добавляем эффект тени шапки при прокрутке */
+function setupScrollShadow() {
+  const topShell = document.querySelector(".top-shell");
+  if (!topShell) return;
+  
+  let lastScrollY = 0;
+  window.addEventListener("scroll", () => {
+    const currentScrollY = window.scrollY;
+    if (currentScrollY > 10 && lastScrollY <= 10) {
+      topShell.classList.add("scrolled");
+    } else if (currentScrollY <= 10 && lastScrollY > 10) {
+      topShell.classList.remove("scrolled");
+    }
+    lastScrollY = currentScrollY;
+  }, { passive: true });
+}
+
 setupNavigation();
+setupScrollShadow();
 setupEvents();
 loadAllData();
