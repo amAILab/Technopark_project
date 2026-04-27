@@ -1,0 +1,1 @@
+window.TP_RGSU_IMPROVEMENTS_LOADED = true;
