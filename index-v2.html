@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Панель управления проектами Технопарка РГСУ - версия 2.0</title>
+  <style>
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:#f5f7f4;color:#13221b;display:grid;place-items:center;min-height:100vh;padding:24px} .box{max-width:760px;background:#fff;border:1px solid #dce5df;border-radius:18px;padding:28px;box-shadow:0 18px 55px rgba(16,35,29,.08)} h1{margin:0 0 10px;font-size:32px} p{color:#66736c;line-height:1.5}.loader{height:8px;border-radius:99px;background:#edf1ee;overflow:hidden;margin-top:18px}.loader i{display:block;width:45%;height:100%;background:#0f6f52;animation:load 1.2s infinite alternate}@keyframes load{from{transform:translateX(-80%)}to{transform:translateX(220%)}}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Загружается версия 2.0</h1>
+    <p>Подключаю текущий реестр проектов, Google Таблицу, Apps Script и модуль управленческих улучшений.</p>
+    <div class="loader"><i></i></div>
+  </div>
+  <script>
+    async function boot(){
+      try{
+        const response = await fetch('index.html', { cache: 'no-store' });
+        let html = await response.text();
+        if (!html.includes('improvements.js')) {
+          html = html.replace('</body>', '<script src="improvements.js"><\\/script>\n</body>');
+        }
+        document.open();
+        document.write(html);
+        document.close();
+      }catch(error){
+        document.body.innerHTML = '<div class="box"><h1>Не удалось загрузить версию 2.0</h1><p>Откройте index.html и добавьте перед закрывающим тегом body строку: &lt;script src="improvements.js"&gt;&lt;/script&gt;</p></div>';
+      }
+    }
+    boot();
+  </script>
+</body>
+</html>
