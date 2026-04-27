@@ -598,7 +598,150 @@ function setupScrollShadow() {
   }, { passive: true });
 }
 
+/* НОВЫЕ УЛУЧШЕНИЯ: Сохранение прокрутки, клавиатурная навигация, фокус управление */
+function enhanceKeyboardNavigation() {
+  // 35. УЛУЧШЕНИЕ: ESC для закрытия меню
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const nav = document.querySelector(".main-nav");
+      if (nav && nav.classList.contains("is-open")) {
+        document.querySelector(".menu-button").click();
+      }
+    }
+  });
+
+  // 36. УЛУЧШЕНИЕ: Tab-навигация между фильтрами
+  const filterElement = document.querySelector(".toolbar");
+  if (filterElement) {
+    filterElement.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") e.currentTarget.focus();
+    });
+  }
+}
+
+/* 37. УЛУЧШЕНИЕ: Сохранение позиции скролла при возврате */
+function enhanceScrollRestoration() {
+  if ("scrollRestoration" in window.history) {
+    window.history.scrollRestoration = "manual";
+  }
+  sessionStorage.getItem("scrollPos") && window.scrollTo(0, parseInt(sessionStorage.getItem("scrollPos")));
+  window.addEventListener("beforeunload", () => {
+    sessionStorage.setItem("scrollPos", window.scrollY);
+  });
+}
+
+/* 38. УЛУЧШЕНИЕ: Фокус ловушка в модалях */
+function enhanceFocusManagement() {
+  const modals = document.querySelectorAll(".modal-overlay");
+  modals.forEach((modal) => {
+    const focusableElements = modal.querySelectorAll("button, [href], input, select, textarea");
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    
+    modal.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    });
+    firstElement && firstElement.focus();
+  });
+}
+
+/* 39. УЛУЧШЕНИЕ: Поддержка prefers-reduced-motion */
+function respectReducedMotion() {
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prefersReducedMotion) {
+    document.documentElement.style.setProperty("--transition-duration", "0.01s");
+  }
+}
+
+/* 40. УЛУЧШЕНИЕ: Обработка сетевых ошибок с retry логикой */
+async function fetchWithRetry(url, options = {}, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(url, options);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response;
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
+    }
+  }
+}
+
+/* 41. УЛУЧШЕНИЕ: Automatic data refresh с интервалом */
+let autoRefreshTimer;
+function setupAutoRefresh(interval = 300000) {
+  // 5 минут по умолчанию
+  clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(() => {
+    if (document.visibilityState === "visible") {
+      loadAllData().catch((err) => console.error("Auto-refresh failed:", err));
+    }
+  }, interval);
+}
+
+/* 42. УЛУЧШЕНИЕ: Pause при неактивной вкладке */
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    clearInterval(autoRefreshTimer);
+  } else {
+    setupAutoRefresh();
+  }
+});
+
+/* 43. УЛУЧШЕНИЕ: Live region announcements для скрин-ридеров */
+function announceToScreenReader(message) {
+  const announcement = document.createElement("div");
+  announcement.setAttribute("role", "status");
+  announcement.setAttribute("aria-live", "polite");
+  announcement.setAttribute("aria-atomic", "true");
+  announcement.className = "sr-only";
+  announcement.textContent = message;
+  document.body.appendChild(announcement);
+  setTimeout(() => announcement.remove(), 1000);
+}
+
+/* 44. УЛУЧШЕНИЕ: Дебаунс для поиска */
+function debounce(func, delay = 300) {
+  let timeoutId;
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+}
+
+/* 45. УЛУЧШЕНИЕ: Throttle для скролла */
+function throttle(func, limit = 100) {
+  let inThrottle;
+  return function (...args) {
+    if (!inThrottle) {
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+}
+
 setupNavigation();
 setupScrollShadow();
 setupEvents();
+
+// Инициализация новых улучшений
+enhanceKeyboardNavigation();
+enhanceScrollRestoration();
+enhanceFocusManagement();
+respectReducedMotion();
+setupAutoRefresh();
+
 loadAllData();
