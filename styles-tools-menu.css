@@ -1,0 +1,89 @@
+/*
+  Выпадающее меню «Инструменты».
+  Разгружает шапку от второстепенных кнопок.
+*/
+
+.tools-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.tools-menu-toggle::after {
+  content: "▾";
+  margin-left: 6px;
+  font-size: 10px;
+}
+
+.tools-menu.is-open .tools-menu-toggle {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.tools-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 90;
+  display: none;
+  width: 230px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.16);
+}
+
+.tools-menu.is-open .tools-menu-panel {
+  display: grid;
+  gap: 6px;
+}
+
+.tools-menu-item {
+  width: 100%;
+  min-height: 36px;
+  justify-content: flex-start !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 0 10px !important;
+  background: #fff !important;
+  color: var(--text) !important;
+  text-align: left;
+}
+
+.tools-menu-item:hover {
+  border-color: var(--blue) !important;
+  background: var(--blue-soft) !important;
+  color: var(--blue) !important;
+}
+
+.tools-menu-item.dashboard-help-button {
+  min-width: 100%;
+  font-size: 12px;
+}
+
+.tools-menu-item.dashboard-help-button::after {
+  content: "Справка";
+  margin-left: 6px;
+}
+
+@media print {
+  .tools-menu {
+    display: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .tools-menu {
+    width: 100%;
+  }
+
+  .tools-menu-toggle {
+    width: 100%;
+  }
+
+  .tools-menu-panel {
+    left: 0;
+    right: auto;
+    width: min(280px, 90vw);
+  }
+}
