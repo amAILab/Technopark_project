@@ -1,0 +1,146 @@
+/*
+  Контроль версии и публикации GitHub Pages.
+*/
+
+.deploy-status {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  overflow: hidden;
+}
+
+.deploy-status summary {
+  padding: 11px 12px;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.deploy-status summary:hover {
+  background: var(--blue-soft);
+}
+
+.deploy-status-body {
+  display: grid;
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+
+.deploy-version {
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+}
+
+.deploy-version strong {
+  font-size: 13px;
+}
+
+.deploy-version small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deploy-checks {
+  display: grid;
+  gap: 6px;
+}
+
+.deploy-score {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  background: #fff;
+}
+
+.deploy-score b {
+  font-size: 18px;
+}
+
+.deploy-score span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.deploy-score.ok {
+  border-color: #bbf7d0;
+  background: var(--green-soft);
+}
+
+.deploy-score.ok b {
+  color: var(--green);
+}
+
+.deploy-score.warn {
+  border-color: #fde68a;
+  background: var(--yellow-soft);
+}
+
+.deploy-score.warn b {
+  color: var(--yellow);
+}
+
+.deploy-check {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 8px;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.deploy-check.ok {
+  border-color: #bbf7d0;
+  color: var(--green);
+  background: var(--green-soft);
+}
+
+.deploy-check.warn {
+  border-color: #fde68a;
+  color: var(--yellow);
+  background: var(--yellow-soft);
+}
+
+.deploy-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.deploy-actions button {
+  min-height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.deploy-actions button:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+@media print {
+  .deploy-status {
+    display: none !important;
+  }
+}
