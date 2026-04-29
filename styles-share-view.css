@@ -1,0 +1,37 @@
+/*
+  Стили для передачи текущего вида панели по ссылке и очистки кеша.
+*/
+
+.share-view-button {
+  min-width: 118px;
+}
+
+.clear-cache-button {
+  min-width: 56px;
+}
+
+.view-share-hint {
+  margin: 16px 0 -4px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+@media print {
+  .share-view-button,
+  .clear-cache-button,
+  .view-share-hint {
+    display: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .view-share-hint {
+    margin-top: 12px;
+  }
+}
