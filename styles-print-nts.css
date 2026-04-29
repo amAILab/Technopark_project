@@ -1,0 +1,160 @@
+/*
+  Печатная версия для заседания НТС.
+*/
+
+.print-meta {
+  display: none;
+}
+
+.print-nts-button {
+  color: var(--blue) !important;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 14mm;
+  }
+
+  body {
+    background: #fff !important;
+    color: #111827 !important;
+  }
+
+  body.print-nts-mode .print-meta {
+    display: flex !important;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #d1d5db;
+    padding-bottom: 12px;
+  }
+
+  .print-meta p,
+  .print-meta h1,
+  .print-meta span,
+  .print-meta strong {
+    margin: 0;
+    color: #111827 !important;
+  }
+
+  .print-meta p,
+  .print-meta span {
+    font-size: 10px;
+  }
+
+  .print-meta h1 {
+    margin-top: 4px;
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .print-meta strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
+
+  body.print-nts-mode .topbar,
+  body.print-nts-mode .toolbar,
+  body.print-nts-mode .sticky-kpi-bar,
+  body.print-nts-mode .view-mode-switcher,
+  body.print-nts-mode #projects,
+  body.print-nts-mode #quality,
+  body.print-nts-mode #ownerLoad,
+  body.print-nts-mode #funnel,
+  body.print-nts-mode #grants,
+  body.print-nts-mode #dashboardAudit,
+  body.print-nts-mode #deployStatus,
+  body.print-nts-mode #dataMap,
+  body.print-nts-mode .feedback-form,
+  body.print-nts-mode .data-load-state,
+  body.print-nts-mode .control-tabs,
+  body.print-nts-mode .leader-brief-head button,
+  body.print-nts-mode .leader-decisions-toolbar,
+  body.print-nts-mode .week-plan-toolbar,
+  body.print-nts-mode .risk-matrix-toolbar {
+    display: none !important;
+  }
+
+  body.print-nts-mode main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  body.print-nts-mode .overview,
+  body.print-nts-mode #leaderBrief,
+  body.print-nts-mode #ntsReadinessPanel,
+  body.print-nts-mode #controlCenter,
+  body.print-nts-mode #nts,
+  body.print-nts-mode .control-panel,
+  body.print-nts-mode .inside-control-center {
+    display: block !important;
+    page-break-inside: avoid;
+  }
+
+  body.print-nts-mode .control-panel {
+    margin-bottom: 14px;
+  }
+
+  body.print-nts-mode .section,
+  body.print-nts-mode .leader-brief,
+  body.print-nts-mode .nts-readiness-panel,
+  body.print-nts-mode .leader-decision,
+  body.print-nts-mode .week-task,
+  body.print-nts-mode .risk-zone,
+  body.print-nts-mode .panel,
+  body.print-nts-mode .kpi-card {
+    box-shadow: none !important;
+    background: #fff !important;
+    border-color: #d1d5db !important;
+  }
+
+  body.print-nts-mode .kpi-grid,
+  body.print-nts-mode .leader-brief-grid,
+  body.print-nts-mode .nts-readiness-checks,
+  body.print-nts-mode .leader-decisions-board,
+  body.print-nts-mode .week-plan-board,
+  body.print-nts-mode .risk-matrix-board,
+  body.print-nts-mode .nts-layout {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  body.print-nts-mode .overview-head {
+    display: block !important;
+  }
+
+  body.print-nts-mode .sync-card {
+    display: none !important;
+  }
+
+  body.print-nts-mode h1,
+  body.print-nts-mode h2,
+  body.print-nts-mode h3 {
+    color: #111827 !important;
+    page-break-after: avoid;
+  }
+
+  body.print-nts-mode p,
+  body.print-nts-mode small,
+  body.print-nts-mode span {
+    color: #374151 !important;
+  }
+
+  body.print-nts-mode .section-title {
+    margin-bottom: 8px !important;
+  }
+
+  body.print-nts-mode .section-title p {
+    display: none !important;
+  }
+
+  body.print-nts-mode .risk-zone-list button,
+  body.print-nts-mode .mobile-project-card button {
+    border-color: #d1d5db !important;
+    background: #fff !important;
+    color: #111827 !important;
+  }
+}
