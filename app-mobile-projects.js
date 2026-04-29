@@ -64,13 +64,26 @@
     tableCard.insertAdjacentElement("afterend", section);
   }
 
+  function rowIsFilteredOut(row) {
+    if (!row || row.hidden || row.getAttribute("aria-hidden") === "true") return true;
+    if (row.classList.contains("is-hidden") || row.classList.contains("filtered-out")) return true;
+    const inlineDisplay = row.style?.display;
+    return inlineDisplay === "none";
+  }
+
   function renderCards() {
     ensureMobileSection();
     const list = document.querySelector("#mobileProjectsList");
     const count = document.querySelector("#mobileProjectsCount");
     if (!list) return;
 
-    const visibleRows = rows().filter((row) => row.offsetParent !== null && !row.hidden);
+    /*
+      Важно: на мобильной версии сама таблица может быть скрыта через CSS.
+      Из-за этого offsetParent у строк становится null, хотя строки уже загружены.
+      Поэтому нельзя фильтровать строки по offsetParent: берем строки из DOM,
+      исключая только явно скрытые фильтрами строки.
+    */
+    const visibleRows = rows().filter((row) => !rowIsFilteredOut(row));
     if (count) count.textContent = `${visibleRows.length} карточек`;
 
     if (!visibleRows.length) {
@@ -112,24 +125,25 @@
   function openProject(uid) {
     const row = document.querySelector(`#projectTable .project-row[data-project="${CSS.escape(uid)}"]`);
     if (!row) return;
+    const detail = document.querySelector(`[data-detail="${CSS.escape(uid)}"]`);
+    if (detail && !detail.classList.contains("is-open")) {
+      row.click();
+    }
     row.scrollIntoView({ behavior: "smooth", block: "center" });
-    setTimeout(() => {
-      if (!row.classList.contains("is-open")) row.click();
-      row.classList.add("mobile-highlight");
-      setTimeout(() => row.classList.remove("mobile-highlight"), 1400);
-    }, 260);
+    row.classList.add("mobile-highlight");
+    setTimeout(() => row.classList.remove("mobile-highlight"), 1400);
   }
 
   function attachEvents() {
     document.addEventListener("click", (event) => {
       const button = event.target.closest("[data-open-project]");
       if (button) openProject(button.dataset.openProject);
-      if (event.target.closest("[data-fast-filter], #resetFilters, #refreshData")) setTimeout(renderCards, 540);
+      if (event.target.closest("[data-fast-filter], #resetFilters, #refreshData, #refreshSheet, #refresh")) setTimeout(renderCards, 540);
     });
 
     ["input", "change"].forEach((type) => {
       document.addEventListener(type, (event) => {
-        if (["searchInput", "statusFilter", "ownerFilter", "readinessFilter", "riskFilter"].includes(event.target.id)) {
+        if (["searchInput", "statusFilter", "ownerFilter", "readinessFilter", "riskFilter", "topSearchInput"].includes(event.target.id)) {
           setTimeout(renderCards, 330);
         }
       });
@@ -140,13 +154,14 @@
     const table = document.querySelector("#projectTable");
     if (!table || window.__mobileProjectsObserver) return;
     window.__mobileProjectsObserver = new MutationObserver(() => setTimeout(renderCards, 220));
-    window.__mobileProjectsObserver.observe(table, { childList: true, subtree: true, attributes: true, attributeFilter: ["style", "hidden", "class"] });
+    window.__mobileProjectsObserver.observe(table, { childList: true, subtree: true, attributes: true, attributeFilter: ["style", "hidden", "class", "aria-hidden"] });
   }
 
   function init() {
     ensureMobileSection();
     attachEvents();
     observeTable();
+    setTimeout(renderCards, 800);
     setTimeout(renderCards, 1800);
     setTimeout(renderCards, 4300);
   }
