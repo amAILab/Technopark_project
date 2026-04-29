@@ -1,6 +1,6 @@
 /*
   Мобильная полировка перед показом.
-  Исправляет выпадающее меню и нижнюю KPI-панель на телефонах.
+  Исправляет выпадающее меню, нижнюю KPI-панель и режим показа на телефонах.
 */
 
 @media (max-width: 760px) {
@@ -63,6 +63,107 @@
     z-index: 2;
   }
 
+  body.mobile-polish-ready #showcaseCopyBrief,
+  body.mobile-polish-ready button:has(+ #showcaseCopyBrief) {
+    display: none !important;
+  }
+
+  body.mobile-polish-ready .showcase-controls {
+    width: auto !important;
+    flex: 0 0 auto !important;
+  }
+
+  body.mobile-polish-ready .showcase-demo-icon {
+    position: relative !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    border: 1px solid rgba(37, 99, 235, .24) !important;
+    border-radius: 999px !important;
+    padding: 0 !important;
+    background: radial-gradient(circle at 35% 25%, #fff, #eff6ff 55%, #dbeafe) !important;
+    color: #1d4ed8 !important;
+    box-shadow: 0 10px 28px rgba(37, 99, 235, .16) !important;
+    cursor: pointer !important;
+    overflow: visible !important;
+    font-size: 0 !important;
+  }
+
+  body.mobile-polish-ready .showcase-demo-icon::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 12px;
+    border: 2px solid currentColor;
+    border-radius: 5px;
+    transform: translateY(1px);
+  }
+
+  body.mobile-polish-ready .showcase-demo-icon::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    transform: translateY(10px);
+  }
+
+  body.mobile-polish-ready .showcase-demo-icon-ring {
+    position: absolute;
+    inset: -5px;
+    border: 1px solid rgba(37, 99, 235, .35);
+    border-radius: 999px;
+    animation: mobileDemoIconPulse 1.9s ease-in-out infinite;
+  }
+
+  body.mobile-polish-ready .showcase-demo-icon-core {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, .12);
+    animation: mobileDemoIconBlink 1.55s ease-in-out infinite;
+  }
+
+  body.mobile-polish-ready.showcase-demo .showcase-demo-icon {
+    border-color: rgba(22, 163, 74, .42) !important;
+    background: radial-gradient(circle at 35% 25%, #fff, #ecfdf5 55%, #bbf7d0) !important;
+    color: #15803d !important;
+  }
+
+  body.mobile-polish-ready.showcase-demo .showcase-demo-icon-ring {
+    border-color: rgba(22, 163, 74, .42);
+  }
+
+  body.mobile-polish-ready.showcase-demo .showcase-demo-icon-core {
+    background: #16a34a;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, .14);
+  }
+
+  body.mobile-polish-ready .toast-stack {
+    left: 14px !important;
+    right: 14px !important;
+    bottom: calc(104px + env(safe-area-inset-bottom, 0px)) !important;
+    justify-items: center !important;
+  }
+
+  body.mobile-polish-ready .toast-stack .toast.compact-mode-toast {
+    max-width: max-content !important;
+    min-height: 34px !important;
+    border-radius: 999px !important;
+    padding: 8px 13px !important;
+    background: rgba(15, 23, 42, .92) !important;
+    color: #fff !important;
+    font-size: 12px !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .18) !important;
+  }
+
   body.mobile-polish-ready .sticky-kpi-bar {
     left: 10px !important;
     right: 10px !important;
@@ -119,6 +220,16 @@
     width: 48px !important;
     height: 48px !important;
   }
+}
+
+@keyframes mobileDemoIconPulse {
+  0%, 100% { transform: scale(.94); opacity: .55; }
+  50% { transform: scale(1.08); opacity: .1; }
+}
+
+@keyframes mobileDemoIconBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .45; transform: scale(.72); }
 }
 
 @media (max-width: 420px) {
