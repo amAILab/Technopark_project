@@ -1,0 +1,185 @@
+/*
+  Финальная полировка панели: версия, легенда, диагностика данных,
+  кнопка наверх и копирование ссылок на разделы.
+*/
+
+.version-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  width: fit-content;
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 10px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.status-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -2px 0 12px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.status-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--gray);
+}
+
+.legend-dot.good { background: var(--green); }
+.legend-dot.info { background: var(--blue); }
+.legend-dot.warn { background: var(--yellow); }
+.legend-dot.danger { background: var(--red); }
+.legend-dot.neutral { background: var(--gray); }
+
+.diagnostic-card {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 16px;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius);
+  background: var(--yellow-soft);
+  box-shadow: var(--shadow);
+}
+
+.diagnostic-card[hidden] {
+  display: none;
+}
+
+.diagnostic-card strong {
+  color: var(--yellow);
+  font-size: 16px;
+}
+
+.diagnostic-card p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.diagnostic-card div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.diagnostic-card a,
+.diagnostic-card button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 12px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.diagnostic-card a:hover,
+.diagnostic-card button:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.back-to-top {
+  position: fixed;
+  right: 18px;
+  bottom: 86px;
+  z-index: 70;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--blue);
+  box-shadow: var(--shadow);
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.back-to-top.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.section-anchor-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.section-anchor-copy:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--blue-soft);
+}
+
+@media print {
+  .version-chip,
+  .status-legend,
+  .diagnostic-card,
+  .back-to-top,
+  .section-anchor-copy {
+    display: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .status-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .back-to-top {
+    right: 12px;
+    bottom: 76px;
+  }
+}
