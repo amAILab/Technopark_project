@@ -1,0 +1,143 @@
+/*
+  Цветовая шкала готовности проектов.
+*/
+
+.readiness-scale-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -2px 0 12px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.readiness-scale-legend strong,
+.readiness-scale-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.readiness-scale-legend strong {
+  color: var(--text);
+  font-weight: 950;
+}
+
+.readiness-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--gray);
+}
+
+.readiness-dot.low { background: var(--red); }
+.readiness-dot.middle { background: var(--yellow); }
+.readiness-dot.ready { background: var(--blue); }
+.readiness-dot.submit { background: var(--green); }
+
+.project-row[data-readiness-level="low"] td:first-child {
+  box-shadow: inset 4px 0 0 var(--red);
+}
+
+.project-row[data-readiness-level="middle"] td:first-child {
+  box-shadow: inset 4px 0 0 var(--yellow);
+}
+
+.project-row[data-readiness-level="ready"] td:first-child {
+  box-shadow: inset 4px 0 0 var(--blue);
+}
+
+.project-row[data-readiness-level="submit"] td:first-child {
+  box-shadow: inset 4px 0 0 var(--green);
+}
+
+.readiness-stage-label {
+  display: inline-flex !important;
+  width: fit-content;
+  margin-top: 6px;
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 11px !important;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.readiness-stage-label.low {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.readiness-stage-label.middle {
+  background: var(--yellow-soft);
+  color: var(--yellow);
+}
+
+.readiness-stage-label.ready {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.readiness-stage-label.submit {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.readiness-stage-label.unknown {
+  background: var(--surface-soft);
+  color: var(--muted);
+}
+
+.passport-readiness-level {
+  display: inline-flex;
+  margin-top: 4px;
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.passport-readiness-level.low {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.passport-readiness-level.middle {
+  background: var(--yellow-soft);
+  color: var(--yellow);
+}
+
+.passport-readiness-level.ready {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.passport-readiness-level.submit {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.project-passport[data-readiness-level="low"] .passport-readiness strong { color: var(--red); }
+.project-passport[data-readiness-level="middle"] .passport-readiness strong { color: var(--yellow); }
+.project-passport[data-readiness-level="ready"] .passport-readiness strong { color: var(--blue); }
+.project-passport[data-readiness-level="submit"] .passport-readiness strong { color: var(--green); }
+
+@media print {
+  .readiness-scale-legend {
+    display: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .readiness-scale-legend {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
