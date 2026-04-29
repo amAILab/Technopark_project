@@ -22,8 +22,16 @@
     return String(value || "").trim().toLowerCase().replaceAll("ё", "е");
   }
 
+  function cleanText(value) {
+    return String(value || "").replace(/\s+/g, " ").trim();
+  }
+
   function getProjectRows() {
     return Array.from(document.querySelectorAll("#projectTable .project-row"));
+  }
+
+  function getVisibleProjectRows() {
+    return getProjectRows().filter((row) => row.style.display !== "none");
   }
 
   function safeCss(value) {
@@ -59,6 +67,39 @@
     if (key === "deadline-14") return rowHasDeadlineWithin14(row);
     if (key === "nts") return text.includes("нтс");
     return true;
+  }
+
+  function ensureHeaderTools() {
+    const actions = document.querySelector(".header-actions");
+    if (!actions || document.querySelector("#copyDashboardSummary")) return;
+    const copyButton = document.createElement("button");
+    copyButton.className = "button ghost dashboard-copy-button";
+    copyButton.id = "copyDashboardSummary";
+    copyButton.type = "button";
+    copyButton.textContent = "Сводка";
+    const exportButton = document.createElement("button");
+    exportButton.className = "button ghost dashboard-export-button";
+    exportButton.id = "exportVisibleProjects";
+    exportButton.type = "button";
+    exportButton.textContent = "CSV";
+    actions.insertBefore(copyButton, actions.firstChild);
+    actions.insertBefore(exportButton, actions.children[1] || null);
+  }
+
+  function ensurePulsePanel() {
+    const overview = document.querySelector("#overview");
+    if (!overview || document.querySelector("#portfolioPulse")) return;
+    const pulse = document.createElement("section");
+    pulse.className = "portfolio-pulse";
+    pulse.id = "portfolioPulse";
+    pulse.setAttribute("aria-label", "Пульс проектного портфеля");
+    pulse.innerHTML = `
+      <article><span>Показано</span><strong id="pulseVisible">0</strong><small>проектов в таблице</small></article>
+      <article><span>С рисками</span><strong id="pulseRisk">0</strong><small>требуют контроля</small></article>
+      <article><span>Без гранта</span><strong id="pulseNoGrant">0</strong><small>нет маршрута</small></article>
+      <article><span>На НТС</span><strong id="pulseNts">0</strong><small>в повестку</small></article>
+    `;
+    overview.insertAdjacentElement("afterend", pulse);
   }
 
   function ensureToolbar() {
@@ -120,6 +161,7 @@
       if (detail) detail.style.display = visible && detail.classList.contains("is-open") ? "table-row" : "none";
     });
     updateCounter();
+    updatePulse();
   }
 
   function clearNativeFilters() {
@@ -149,6 +191,16 @@
     counter.textContent = `Показано проектов: ${visible} из ${rows.length}`;
   }
 
+  function updatePulse() {
+    const rows = getProjectRows();
+    const visible = getVisibleProjectRows();
+    const set = (id, value) => { const node = document.querySelector(id); if (node) node.textContent = value; };
+    set("#pulseVisible", visible.length || rows.length);
+    set("#pulseRisk", rows.filter((row) => rowMatches(row, "risk")).length);
+    set("#pulseNoGrant", rows.filter((row) => rowMatches(row, "no-grant")).length);
+    set("#pulseNts", rows.filter((row) => rowMatches(row, "nts")).length);
+  }
+
   function setAllDetails(open) {
     document.querySelectorAll("#projectTable .project-detail-row").forEach((detail) => {
       const uid = detail.dataset.detail;
@@ -171,7 +223,104 @@
         detail.style.display = detail.classList.contains("is-open") ? "table-row" : "none";
       });
       updateCounter();
+      updatePulse();
     }, 280);
+  }
+
+  function showToolToast(message, type = "") {
+    const toast = document.querySelector("#toast");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.toggle("error", type === "error");
+    toast.classList.add("is-visible");
+    clearTimeout(showToolToast.timer);
+    showToolToast.timer = setTimeout(() => toast.classList.remove("is-visible"), 3000);
+  }
+
+  function kpiLine(label, id) {
+    const value = document.querySelector(id)?.textContent?.trim() || "0";
+    return `${label}: ${value}`;
+  }
+
+  function topActionLines(limit = 8) {
+    return Array.from(document.querySelectorAll("#actionBoard .action-row:not(.action-head)"))
+      .slice(0, limit)
+      .map((row, index) => `${index + 1}. ${cleanText(row.textContent)}`);
+  }
+
+  function agendaLines(selector, limit = 8) {
+    return Array.from(document.querySelectorAll(selector))
+      .slice(0, limit)
+      .map((item, index) => `${index + 1}. ${cleanText(item.textContent)}`);
+  }
+
+  function buildSummaryText() {
+    const updated = document.querySelector("#lastUpdated")?.textContent?.trim() || "";
+    const actions = topActionLines();
+    const agenda = agendaLines("#ntsAgenda .agenda-item");
+    const decisions = agendaLines("#decisionList .agenda-item");
+    return [
+      "Панель руководителя Технопарка РГСУ",
+      updated,
+      "",
+      "Ключевые показатели:",
+      `- ${kpiLine("Всего проектов", "#kpiTotal")}`,
+      `- ${kpiLine("Активные", "#kpiActive")}`,
+      `- ${kpiLine("Готовы к грантам", "#kpiReady")}`,
+      `- ${kpiLine("Требуют действий", "#kpiRisks")}`,
+      `- ${kpiLine("Пожелания НТС", "#kpiFeedback")}`,
+      "",
+      "Что требует действия:",
+      ...(actions.length ? actions : ["Нет критических действий по текущим данным."]),
+      "",
+      "К заседанию НТС:",
+      ...(agenda.length ? agenda : ["Нет проектов для вынесения на НТС."]),
+      "",
+      "Решения:",
+      ...(decisions.length ? decisions : ["Критические решения не выявлены."]),
+    ].join("\n");
+  }
+
+  async function copySummary() {
+    const text = buildSummaryText();
+    try {
+      await navigator.clipboard.writeText(text);
+      showToolToast("Сводка скопирована");
+    } catch (error) {
+      const area = document.createElement("textarea");
+      area.value = text;
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
+      showToolToast("Сводка скопирована");
+    }
+  }
+
+  function csvEscape(value) {
+    const text = cleanText(value).replaceAll('"', '""');
+    return `"${text}"`;
+  }
+
+  function exportVisibleProjectsCsv() {
+    const rows = getVisibleProjectRows();
+    const header = ["Проект", "Ответственный", "Статус", "Грант", "Срок", "Готовность", "Риск", "Детали"];
+    const lines = [header.map(csvEscape).join(";")];
+    rows.forEach((row) => {
+      const cells = Array.from(row.children).slice(1).map((cell) => cleanText(cell.textContent));
+      const detail = cleanText(getDetailRow(row.dataset.project)?.textContent || "");
+      lines.push([...cells, detail].map(csvEscape).join(";"));
+    });
+    const blob = new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "Панель Технопарка проекты.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showToolToast("CSV экспортирован");
   }
 
   function attachEvents() {
@@ -182,16 +331,18 @@
       if (event.target.closest("#collapseAllProjects")) setAllDetails(false);
       if (event.target.closest("#resetFilters")) resetFilters();
       if (event.target.closest("#printNtsAgenda")) window.print();
+      if (event.target.closest("#copyDashboardSummary")) copySummary();
+      if (event.target.closest("#exportVisibleProjects")) exportVisibleProjectsCsv();
     });
     ["input", "change"].forEach((type) => {
       document.addEventListener(type, (event) => {
         if (["searchInput", "statusFilter", "ownerFilter", "readinessFilter", "riskFilter"].includes(event.target.id)) {
           updateActiveButton("all");
-          setTimeout(updateCounter, 280);
+          setTimeout(() => { updateCounter(); updatePulse(); }, 280);
         }
       });
     });
-    document.querySelector("#projectTable")?.addEventListener("click", () => setTimeout(updateCounter, 80));
+    document.querySelector("#projectTable")?.addEventListener("click", () => setTimeout(() => { updateCounter(); updatePulse(); }, 80));
   }
 
   function watchProjectTable() {
@@ -204,6 +355,8 @@
   }
 
   function init() {
+    ensureHeaderTools();
+    ensurePulsePanel();
     ensureToolbar();
     ensureProjectTools();
     ensurePrintButton();
