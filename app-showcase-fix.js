@@ -4,6 +4,7 @@
 */
 (function () {
   const NEW_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiOYwnD7aozxYFzox4JokcHIZjR-OD7FUXcn16n0YqH1gdHoWqgqYXy2CmIJaiN9o/exec";
+  const FORM_KEY = "NTS_TECHNOPARK_2026";
 
   function $(selector) {
     return document.querySelector(selector);
@@ -16,12 +17,7 @@
     node.classList.toggle("error", Boolean(isError));
     node.classList.add("is-visible");
     clearTimeout(toast.timer);
-    toast.timer = setTimeout(() => node.classList.remove("is-visible"), 3200);
-  }
-
-  function setScriptUrl() {
-    if (!window.CONFIG) return;
-    window.CONFIG.scriptUrl = NEW_SCRIPT_URL;
+    toast.timer = setTimeout(() => node.classList.remove("is-visible"), 3600);
   }
 
   function markBody() {
@@ -80,22 +76,69 @@
     });
   }
 
+  function setSubmitState(form, isLoading) {
+    const submit = form.querySelector('button[type="submit"]');
+    if (!submit) return;
+    submit.disabled = isLoading;
+    submit.dataset.originalText = submit.dataset.originalText || submit.textContent;
+    submit.textContent = isLoading ? "Отправляем..." : (submit.dataset.originalText || "Отправить пожелание");
+  }
+
+  function buildPayload(form) {
+    const formData = new FormData(form);
+    formData.set("formKey", FORM_KEY);
+    formData.set("source", "site_showcase");
+    formData.set("status", "новое");
+    formData.set("createdAt", new Date().toISOString());
+    return formData;
+  }
+
+  async function submitNtsForm(form) {
+    if (!form.reportValidity()) return;
+    setSubmitState(form, true);
+
+    try {
+      const response = await fetch(NEW_SCRIPT_URL, {
+        method: "POST",
+        body: buildPayload(form),
+        redirect: "follow",
+      });
+
+      if (!response.ok && response.type !== "opaque") {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      form.reset();
+      toast("Пожелание НТС отправлено в таблицу");
+      setTimeout(() => document.querySelector("#refreshData")?.click(), 900);
+    } catch (error) {
+      console.warn("Основная отправка формы НТС не прошла, пробуем no-cors", error);
+      try {
+        await fetch(NEW_SCRIPT_URL, {
+          method: "POST",
+          body: buildPayload(form),
+          mode: "no-cors",
+        });
+        form.reset();
+        toast("Пожелание отправлено. Если запись не появилась сразу, нажмите Обновить через несколько секунд.");
+      } catch (secondError) {
+        console.error("Форма НТС не отправлена", secondError);
+        toast("Не удалось отправить пожелание. Проверьте Apps Script и доступ к таблице.", true);
+      }
+    } finally {
+      setSubmitState(form, false);
+    }
+  }
+
   function improveFormState() {
     const form = $("#ntsForm");
     if (!form || form.dataset.showcaseFixed) return;
     form.dataset.showcaseFixed = "1";
 
-    form.addEventListener("submit", () => {
-      setScriptUrl();
-      const submit = form.querySelector('button[type="submit"]');
-      if (!submit) return;
-      submit.disabled = true;
-      submit.dataset.originalText = submit.dataset.originalText || submit.textContent;
-      submit.textContent = "Отправляем...";
-      setTimeout(() => {
-        submit.disabled = false;
-        submit.textContent = submit.dataset.originalText || "Отправить пожелание";
-      }, 6500);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      submitNtsForm(form);
     }, true);
   }
 
@@ -121,7 +164,6 @@
   }
 
   function init() {
-    setScriptUrl();
     markBody();
     fixExternalLinks();
     smoothAnchors();
