@@ -1,0 +1,210 @@
+/*
+  Матрица рисков портфеля.
+*/
+
+.risk-matrix-section {
+  margin-top: 26px;
+}
+
+.risk-matrix-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.risk-matrix-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 12px;
+  background: #fff;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.risk-matrix-toolbar button:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.risk-matrix-toolbar span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.risk-matrix-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.risk-zone {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 260px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 13px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.risk-zone header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.risk-zone header strong,
+.risk-zone header small {
+  display: block;
+}
+
+.risk-zone header strong {
+  font-size: 15px;
+}
+
+.risk-zone header small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.risk-zone header b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.risk-zone-list {
+  display: grid;
+  gap: 7px;
+}
+
+.risk-zone-list button {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 9px;
+  background: #fff;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.risk-zone-list button:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.risk-zone-list span {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.risk-zone-list small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.risk-zone-list em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.risk-zone.critical {
+  border-color: #fecaca;
+  background: linear-gradient(180deg, #fff1f2, #fff);
+}
+
+.risk-zone.critical header b {
+  background: #fee2e2;
+  color: var(--red);
+}
+
+.risk-zone.package {
+  border-color: #fde68a;
+  background: linear-gradient(180deg, var(--yellow-soft), #fff);
+}
+
+.risk-zone.package header b {
+  background: #fef3c7;
+  color: var(--yellow);
+}
+
+.risk-zone.grant {
+  border-color: #bfdbfe;
+  background: linear-gradient(180deg, var(--blue-soft), #fff);
+}
+
+.risk-zone.grant header b {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.risk-zone.control {
+  border-color: #bbf7d0;
+  background: linear-gradient(180deg, var(--green-soft), #fff);
+}
+
+.risk-zone.control header b {
+  background: #dcfce7;
+  color: var(--green);
+}
+
+body.executive-mode #riskMatrix {
+  display: block !important;
+}
+
+@media print {
+  .risk-matrix-toolbar {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .risk-matrix-board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .risk-matrix-board {
+    grid-template-columns: 1fr;
+  }
+
+  .risk-matrix-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
