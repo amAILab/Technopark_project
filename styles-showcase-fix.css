@@ -1,4 +1,4 @@
-/* Предпоказовые правки: спокойный индикатор готовности и мелкая страховка интерактива */
+/* Предпоказовые правки: индикатор готовности и понятные состояния интерфейса */
 .showcase-checklist {
   align-self: stretch;
   display: grid;
@@ -28,24 +28,99 @@
   line-height: 1.35;
 }
 
-.showcase-ready button:disabled {
+.showcase-ready button:disabled,
+.showcase-ready .button:disabled,
+.showcase-ready .primary-action:disabled,
+.showcase-ready .ghost-action:disabled {
   cursor: wait;
   opacity: .72;
 }
 
-.showcase-ready .main-nav a.is-active {
+.showcase-ready .main-nav a.is-active,
+.showcase-ready .nav-tabs .tab.is-active,
+.showcase-ready .nav button.active,
+.showcase-ready [data-view].is-active {
   color: var(--blue, #2563eb);
   background: var(--blue-soft, #eff6ff);
 }
 
+.toast-stack {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 999;
+  display: grid;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast-stack .toast {
+  max-width: min(420px, calc(100vw - 32px));
+  border: 1px solid rgba(15, 23, 42, .1);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, .96);
+  color: var(--text, #0f172a);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, .14);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.toast-stack .toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-stack .toast.is-error,
+.showcase-ready .toast.error {
+  border-color: rgba(185, 28, 28, .22);
+  background: rgba(254, 242, 242, .96);
+  color: #991b1b;
+}
+
+.showcase-ready .sync-dot.ok,
+.showcase-ready .sync-dot.is-ok,
+.showcase-ready #syncDot.ok,
+.showcase-ready #syncDot.is-ok,
+.showcase-ready .dot.ok,
+.showcase-ready .dot.is-ok {
+  box-shadow: 0 0 0 5px rgba(22, 163, 74, .12);
+}
+
+.showcase-ready .sync-dot.error,
+.showcase-ready .sync-dot.is-error,
+.showcase-ready #syncDot.error,
+.showcase-ready #syncDot.is-error,
+.showcase-ready .dot.error,
+.showcase-ready .dot.is-error {
+  box-shadow: 0 0 0 5px rgba(185, 28, 28, .12);
+}
+
+.showcase-ready .project-row,
+.showcase-ready .project-card,
+.showcase-ready .timeline-item,
+.showcase-ready .action-item,
+.showcase-ready [data-project-id] {
+  scroll-margin-top: 92px;
+}
+
+.showcase-ready .empty-state,
+.showcase-ready .empty {
+  border: 1px dashed rgba(100, 116, 139, .28);
+  border-radius: var(--radius, 16px);
+  padding: 18px;
+  background: rgba(248, 250, 252, .72);
+  color: var(--muted, #64748b);
+}
+
 @media (max-width: 860px) {
-  .showcase-checklist {
-    min-width: 0;
-  }
+  .showcase-checklist { min-width: 0; }
+  .toast-stack { left: 12px; right: 12px; bottom: 12px; }
 }
 
 @media print {
-  .showcase-checklist {
-    display: none !important;
-  }
+  .showcase-checklist,
+  .toast-stack { display: none !important; }
 }
