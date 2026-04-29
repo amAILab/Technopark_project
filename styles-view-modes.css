@@ -1,0 +1,90 @@
+/*
+  Переключатель режимов: Рабочий / НТС / Аудит.
+*/
+
+.view-mode-switcher {
+  display: grid;
+  grid-template-columns: minmax(220px, .8fr) minmax(0, 1.6fr);
+  gap: 14px;
+  align-items: center;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.view-mode-switcher strong,
+.view-mode-switcher small {
+  display: block;
+}
+
+.view-mode-switcher strong {
+  font-size: 18px;
+}
+
+.view-mode-switcher small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.view-mode-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.view-mode-buttons button {
+  display: grid;
+  gap: 4px;
+  min-height: 58px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  background: #fff;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.view-mode-buttons button:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.view-mode-buttons button.is-active {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+
+.view-mode-buttons span {
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.view-mode-buttons small {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+body.executive-mode .view-mode-switcher {
+  display: grid !important;
+}
+
+@media print {
+  .view-mode-switcher {
+    display: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .view-mode-switcher,
+  .view-mode-buttons {
+    grid-template-columns: 1fr;
+  }
+}
