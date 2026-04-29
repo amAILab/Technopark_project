@@ -1,0 +1,90 @@
+/*
+  Нагрузка по ответственным.
+*/
+
+.owner-load-section {
+  margin-top: 26px;
+}
+
+.owner-load-board {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.owner-load-head,
+.owner-load-row {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.5fr) repeat(4, minmax(120px, .7fr));
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.owner-load-head {
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.owner-load-row:last-child {
+  border-bottom: 0;
+}
+
+.owner-load-row strong {
+  font-size: 14px;
+}
+
+.owner-load-row span {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.owner-load-row.has-risk {
+  background: linear-gradient(90deg, var(--yellow-soft), #fff 42%);
+}
+
+.owner-readiness {
+  display: inline-flex;
+  width: 72px;
+  height: 7px;
+  margin-right: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  vertical-align: middle;
+}
+
+.owner-readiness i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--blue);
+}
+
+body.executive-mode #ownerLoad {
+  display: none !important;
+}
+
+@media print {
+  #ownerLoad {
+    display: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .owner-load-board {
+    overflow-x: auto;
+  }
+
+  .owner-load-head,
+  .owner-load-row {
+    min-width: 820px;
+  }
+}
