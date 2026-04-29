@@ -1,0 +1,112 @@
+/*
+  Режим показа для руководства/НТС и сортировка таблицы проектов.
+  Не меняет данные, только управляет отображением интерфейса.
+*/
+
+.executive-mode-button.is-active {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
+body.executive-mode .toolbar,
+body.executive-mode .quick-filters,
+body.executive-mode .project-tools,
+body.executive-mode #quality,
+body.executive-mode #funnel,
+body.executive-mode #grants,
+body.executive-mode .feedback-form {
+  display: none !important;
+}
+
+body.executive-mode main {
+  max-width: 1180px;
+}
+
+body.executive-mode #projects .section-title p {
+  display: none;
+}
+
+body.executive-mode .projects-table th:nth-child(3),
+body.executive-mode .projects-table td:nth-child(3),
+body.executive-mode .projects-table th:nth-child(4),
+body.executive-mode .projects-table td:nth-child(4),
+body.executive-mode .projects-table th:nth-child(5),
+body.executive-mode .projects-table td:nth-child(5),
+body.executive-mode .projects-table th:nth-child(6),
+body.executive-mode .projects-table td:nth-child(6) {
+  display: none;
+}
+
+body.executive-mode .projects-table {
+  min-width: 720px;
+}
+
+.sortable-th {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable-th button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 900;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.sortable-th button::after {
+  content: "↕";
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.sortable-th.is-sort-asc button::after {
+  content: "↑";
+  color: var(--blue);
+}
+
+.sortable-th.is-sort-desc button::after {
+  content: "↓";
+  color: var(--blue);
+}
+
+.row-copy-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 10px;
+  background: #fff;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.row-copy-button:hover {
+  background: var(--blue-soft);
+  border-color: var(--blue);
+}
+
+@media print {
+  .executive-mode-button,
+  .row-copy-button {
+    display: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body.executive-mode .projects-table {
+    min-width: 680px;
+  }
+}
