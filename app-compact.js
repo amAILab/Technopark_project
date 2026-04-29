@@ -353,15 +353,17 @@ function renderActions() {
     els.actionBoard.innerHTML = `<div class="empty-state"><strong>Критических действий нет</strong><span>По текущим данным все обязательные поля заполнены.</span></div>`;
     return;
   }
+  const grouped = ["critical", "high", "medium"].map((severity) => ({ severity, rows: items.filter((item) => item.severity === severity) })).filter((group) => group.rows.length);
+  const severityLabel = { critical: "Критично", high: "Важно", medium: "Планово" };
   els.actionBoard.innerHTML = `<div class="action-table">
     <div class="action-row action-head"><span>Приоритет</span><span>Проект</span><span>Проблема</span><span>Что сделать</span><span>Срок</span></div>
-    ${items.slice(0, 18).map((item) => `<div class="action-row ${item.severity}">
+    ${grouped.map((group) => `<div class="action-group-title ${group.severity}">${severityLabel[group.severity]} · ${group.rows.length}</div>${group.rows.slice(0, 12).map((item) => `<div class="action-row ${item.severity}">
       <span><b class="dot ${item.severity}"></b>${item.severity === "critical" ? "срочно" : item.severity === "high" ? "важно" : "планово"}</span>
       <span><strong>${escapeHtml(item.project.name)}</strong><small>${escapeHtml(item.project.owner || "ответственный не указан")}</small></span>
       <span>${escapeHtml(item.label)}</span>
       <span>${escapeHtml(item.action)}</span>
       <span>${escapeHtml(formatDate(item.project.deadline))}</span>
-    </div>`).join("")}
+    </div>`).join("")}`).join("")}
   </div>`;
 }
 
@@ -377,7 +379,7 @@ function renderProjects() {
     const riskClass = issues.length ? topSeverity(issues) : "low";
     const readinessLabel = project.explicitReadiness === null ? `${project.readiness}% расчет` : `${project.readiness}%`;
     return `<tr class="project-row" data-project="${escapeHtml(project.uid)}">
-      <td><button class="row-toggle" type="button" aria-label="Раскрыть проект">+</button></td>
+      <td><button class="row-toggle" type="button" aria-label="Раскрыть паспорт проекта">+</button></td>
       <td><strong>${escapeHtml(project.name)}</strong><small>${escapeHtml(project.direction || project.stage || "направление не указано")}</small></td>
       <td>${escapeHtml(project.owner || "не указан")}</td>
       <td><span class="badge ${statusClass(project.status)}">${escapeHtml(project.status)}</span></td>

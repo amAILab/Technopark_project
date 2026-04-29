@@ -157,7 +157,8 @@ a {
 }
 
 .main-nav a:hover,
-.main-nav a:focus-visible {
+.main-nav a:focus-visible,
+.main-nav a.is-active {
   color: var(--blue);
   background: var(--blue-soft);
 }
@@ -386,7 +387,7 @@ h3 {
 }
 
 .section {
-  scroll-margin-top: 86px;
+  scroll-margin-top: 96px;
   margin-top: 26px;
 }
 
@@ -1295,3 +1296,16 @@ td small {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+
+.action-group-title {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: #f8fafc;
+  border-top: 1px solid var(--line);
+}
+.action-group-title.critical { color: #9f1239; background: #fff1f2; }
+.action-group-title.high { color: #92400e; background: #fffbeb; }
