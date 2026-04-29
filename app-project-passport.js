@@ -84,6 +84,22 @@
     return "Контролировать следующее действие и обновлять статус в реестре.";
   }
 
+  function blockerText(row, details) {
+    const owner = normalizeText(cell(row, 2));
+    const grant = normalizeText(cell(row, 4));
+    const deadline = normalizeText(cell(row, 5));
+    const risk = cell(row, 7) || "";
+    const issues = [];
+
+    if (!owner || owner.includes("не указан")) issues.push("не назначен ответственный");
+    if (!grant || grant.includes("не выбран") || grant.includes("нет")) issues.push("не выбран грантовый маршрут");
+    if (!deadline || deadline.includes("нет срока")) issues.push("нет управленческого срока");
+    if (risk && normalizeText(risk) !== "рисков нет") issues.push(risk);
+    if (details.comment) issues.push(details.comment);
+
+    return issues.length ? issues.slice(0, 3).join("; ") : "Критических препятствий по текущим данным не выявлено.";
+  }
+
   function passportHtml(row, details) {
     const name = projectName(row);
     const direction = projectDirection(row);
@@ -94,9 +110,10 @@
     const readiness = readinessValue(row);
     const risk = cell(row, 7) || "рисков нет";
     const decision = decisionText(row, details);
+    const blocker = blockerText(row, details);
 
     return `
-      <section class="project-passport" data-passport="${row.dataset.project}">
+      <section class="project-passport compact-passport" data-passport="${row.dataset.project}">
         <div class="project-passport-head">
           <div>
             <span>Паспорт проекта</span>
@@ -109,16 +126,28 @@
           </div>
         </div>
 
-        <div class="passport-grid">
-          <article><b>Суть проекта</b><p>${details.description || "Описание проекта не заполнено."}</p></article>
-          <article><b>Ответственный</b><p>${owner}</p></article>
-          <article><b>Статус</b><p><span class="passport-pill ${statusClass(status)}">${status}</span></p></article>
-          <article><b>Грантовый маршрут</b><p>${grant}</p></article>
-          <article><b>Срок</b><p>${deadline}</p></article>
-          <article><b>Риск</b><p><span class="passport-pill ${statusClass(risk)}">${risk}</span></p></article>
-          <article><b>Следующее действие</b><p>${details.nextAction || "Следующее действие не указано."}</p></article>
-          <article><b>Решение для НТС / руководителя</b><p>${decision}</p></article>
+        <div class="passport-decision-strip">
+          <span class="passport-pill ${statusClass(risk)}">${risk}</span>
+          <span><b>Срок:</b> ${deadline}</span>
+          <span><b>Ответственный:</b> ${owner}</span>
+          <span><b>Грант:</b> ${grant}</span>
         </div>
+
+        <div class="passport-grid compact">
+          <article><b>Суть проекта</b><p>${details.description || "Описание проекта не заполнено."}</p></article>
+          <article><b>Что мешает</b><p>${blocker}</p></article>
+          <article><b>Что решить</b><p>${decision}</p></article>
+          <article><b>Следующее действие</b><p>${details.nextAction || "Следующее действие не указано."}</p></article>
+        </div>
+
+        <details class="passport-extra">
+          <summary>Показать служебные поля</summary>
+          <div>
+            <span><b>Статус:</b> <em class="passport-pill ${statusClass(status)}">${status}</em></span>
+            <span><b>Грантовый маршрут:</b> ${grant}</span>
+            <span><b>Комментарий:</b> ${details.comment || "нет комментария"}</span>
+          </div>
+        </details>
       </section>
     `;
   }
