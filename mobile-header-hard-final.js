@@ -9,10 +9,6 @@
     return window.matchMedia('(max-width: 760px)').matches;
   }
 
-  function clean(value) {
-    return String(value || '').replace(/\s+/g, ' ').trim();
-  }
-
   function addStyle() {
     if (document.querySelector('#mobileHeaderHardFinalStyle')) return;
     var style = document.createElement('style');
@@ -108,21 +104,13 @@
     document.head.appendChild(style);
   }
 
-  function findOriginalFeedback() {
-    return Array.from(document.querySelectorAll('a, button')).find(function (node) {
-      var text = clean(node.textContent).toLowerCase();
-      return /пожел/.test(text) && node.id !== 'mobileHeaderHardFeedback';
-    });
-  }
-
   function openFeedback(event) {
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation();
 
-    var original = findOriginalFeedback();
-    if (original) {
-      original.click();
+    if (typeof window.openTechnoFeedbackModal === 'function') {
+      window.openTechnoFeedbackModal();
       return;
     }
 
