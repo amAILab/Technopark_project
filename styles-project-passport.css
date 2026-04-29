@@ -1,0 +1,167 @@
+/*
+  Паспорт проекта внутри раскрытой строки таблицы.
+*/
+
+.project-passport {
+  margin: 4px 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.project-passport-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(90deg, var(--blue-soft), #fff);
+}
+
+.project-passport-head span {
+  display: inline-flex;
+  margin-bottom: 7px;
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.project-passport-head h3 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.project-passport-head small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.passport-readiness {
+  display: grid;
+  place-items: center;
+  min-width: 96px;
+  min-height: 78px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+
+.passport-readiness strong {
+  color: var(--blue);
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.passport-readiness small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.passport-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+}
+
+.passport-grid article {
+  min-height: 94px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 11px;
+  background: #fff;
+}
+
+.passport-grid article:first-child,
+.passport-grid article:nth-child(7),
+.passport-grid article:nth-child(8) {
+  grid-column: span 2;
+}
+
+.passport-grid b {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.passport-grid p {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.passport-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: 999px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.passport-pill.good {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.passport-pill.info {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.passport-pill.warn {
+  background: var(--yellow-soft);
+  color: var(--yellow);
+}
+
+.passport-pill.danger {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+@media print {
+  .project-passport {
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  .passport-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .project-passport-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .passport-readiness {
+    width: 100%;
+  }
+
+  .passport-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .passport-grid article:first-child,
+  .passport-grid article:nth-child(7),
+  .passport-grid article:nth-child(8) {
+    grid-column: auto;
+  }
+}
