@@ -10,10 +10,6 @@
     return document.querySelector(selector);
   }
 
-  function $all(selector) {
-    return Array.from(document.querySelectorAll(selector));
-  }
-
   function cleanText(value) {
     return String(value || "").replace(/\s+/g, " ").trim();
   }
@@ -173,42 +169,21 @@
     return { total, active, ready, risks, feedback, urgent };
   }
 
-  function buildBriefText() {
-    const m = currentMetrics();
-    const total = m.total || "уточняется";
-    const ready = m.ready || 0;
-    const risks = m.risks || 0;
-    const urgent = m.urgent || 0;
-    const feedback = m.feedback || 0;
-    return `Краткая сводка по панели Технопарка РГСУ: в реестре ${total} проектов, ${ready} готовы к грантовой упаковке, ${risks} требуют действий или уточнений, ${urgent} имеют ближайшие дедлайны. Получено ${feedback} пожеланий НТС. Основной фокус до 1 июня - отобрать зрелые проекты, закрыть паспорта, сметы, письма партнеров и подготовить первые грантовые заявки.`;
-  }
-
-  async function copyBrief() {
-    const text = buildBriefText();
-    try {
-      await navigator.clipboard.writeText(text);
-      toast("Краткая сводка для НТС скопирована");
-    } catch (error) {
-      console.warn("Не удалось скопировать через clipboard", error);
-      const area = document.createElement("textarea");
-      area.value = text;
-      document.body.appendChild(area);
-      area.select();
-      document.execCommand("copy");
-      area.remove();
-      toast("Краткая сводка для НТС скопирована");
-    }
-  }
-
   function ensureShowcaseControls() {
-    if ($("#showcaseControls")) return;
+    if ($("#showcaseControls")) {
+      const copyButton = $("#showcaseCopyBrief");
+      copyButton?.remove();
+      return;
+    }
     const target = $(".header-actions") || $(".topbar-actions") || $(".topbar__actions") || $(".actions") || $("header") || document.body;
     const controls = document.createElement("div");
-    controls.className = "showcase-controls";
+    controls.className = "showcase-controls icon-only";
     controls.id = "showcaseControls";
     controls.innerHTML = `
-      <button class="button ghost showcase-control" id="showcaseDemoToggle" type="button">Режим показа</button>
-      <button class="button ghost showcase-control" id="showcaseCopyBrief" type="button">Скопировать сводку</button>
+      <button class="showcase-demo-icon" id="showcaseDemoToggle" type="button" aria-label="Включить режим показа" title="Режим показа">
+        <span class="showcase-demo-icon-ring"></span>
+        <span class="showcase-demo-icon-core"></span>
+      </button>
     `;
     target.appendChild(controls);
   }
@@ -216,8 +191,10 @@
   function updateDemoButton() {
     const button = $("#showcaseDemoToggle");
     if (!button) return;
-    button.textContent = document.body.classList.contains("showcase-demo") ? "Обычный режим" : "Режим показа";
-    button.setAttribute("aria-pressed", document.body.classList.contains("showcase-demo") ? "true" : "false");
+    const enabled = document.body.classList.contains("showcase-demo");
+    button.setAttribute("aria-label", enabled ? "Выключить режим показа" : "Включить режим показа");
+    button.setAttribute("title", enabled ? "Обычный режим" : "Режим показа");
+    button.setAttribute("aria-pressed", enabled ? "true" : "false");
   }
 
   function setDemoMode(enabled) {
@@ -294,7 +271,6 @@
       }
 
       if (button.id === "showcaseDemoToggle") setDemoMode(!document.body.classList.contains("showcase-demo"));
-      if (button.id === "showcaseCopyBrief") copyBrief();
 
       if (button.classList.contains("row-toggle")) {
         setTimeout(() => {
