@@ -122,7 +122,16 @@
     showToast.timer = setTimeout(() => toast.classList.remove("is-visible"), 2600);
   }
 
+  function loadShowcaseStyles() {
+    if (document.querySelector('link[href="styles-showcase-fix.css"]')) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "styles-showcase-fix.css";
+    document.head.appendChild(link);
+  }
+
   function loadShowcaseLayer() {
+    loadShowcaseStyles();
     if (document.querySelector('script[src="app-showcase-fix.js"]')) return;
     const script = document.createElement("script");
     script.src = "app-showcase-fix.js";
