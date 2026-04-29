@@ -1,5 +1,6 @@
 /*
   Паспорт проекта внутри раскрытой строки таблицы.
+  Оптимизирован под быстрое управленческое чтение.
 */
 
 .project-passport {
@@ -66,11 +67,41 @@
   font-weight: 850;
 }
 
+.passport-decision-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 14px 0;
+}
+
+.passport-decision-strip > span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 10px;
+  background: #fff;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.passport-decision-strip b {
+  margin-right: 4px;
+  color: var(--muted);
+  font-weight: 950;
+}
+
 .passport-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   padding: 14px;
+}
+
+.passport-grid.compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .passport-grid article {
@@ -81,10 +112,14 @@
   background: #fff;
 }
 
-.passport-grid article:first-child,
-.passport-grid article:nth-child(7),
-.passport-grid article:nth-child(8) {
+.passport-grid:not(.compact) article:first-child,
+.passport-grid:not(.compact) article:nth-child(7),
+.passport-grid:not(.compact) article:nth-child(8) {
   grid-column: span 2;
+}
+
+.passport-grid.compact article:first-child {
+  grid-column: 1 / -1;
 }
 
 .passport-grid b {
@@ -133,14 +168,54 @@
   color: var(--red);
 }
 
+.passport-extra {
+  margin: 0 14px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+}
+
+.passport-extra summary {
+  padding: 10px 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.passport-extra summary:hover {
+  color: var(--blue);
+}
+
+.passport-extra > div {
+  display: grid;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+.passport-extra span {
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.passport-extra em {
+  font-style: normal;
+}
+
 @media print {
   .project-passport {
     box-shadow: none;
   }
+
+  .passport-extra {
+    display: none !important;
+  }
 }
 
 @media (max-width: 1180px) {
-  .passport-grid {
+  .passport-grid,
+  .passport-grid.compact {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -155,13 +230,15 @@
     width: 100%;
   }
 
-  .passport-grid {
+  .passport-grid,
+  .passport-grid.compact {
     grid-template-columns: 1fr;
   }
 
   .passport-grid article:first-child,
   .passport-grid article:nth-child(7),
-  .passport-grid article:nth-child(8) {
+  .passport-grid article:nth-child(8),
+  .passport-grid.compact article:first-child {
     grid-column: auto;
   }
 }
