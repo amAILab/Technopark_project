@@ -139,6 +139,14 @@
     document.body.appendChild(script);
   }
 
+  function loadMobilePolishLayer() {
+    if (document.querySelector('script[src="app-mobile-polish.js"]')) return;
+    const script = document.createElement("script");
+    script.src = "app-mobile-polish.js";
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+
   function attachEvents() {
     window.addEventListener("scroll", toggleBackToTop, { passive: true });
     document.addEventListener("click", (event) => {
@@ -169,6 +177,7 @@
     observeData();
     toggleBackToTop();
     loadShowcaseLayer();
+    loadMobilePolishLayer();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
