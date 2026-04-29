@@ -1,6 +1,7 @@
 /*
   Экстренная мобильная полировка перед показом.
-  Главное: кнопка «Добавить пожелание» открывает форму в модальном окне.
+  Верхняя панель: только «Режим НТС» и «Добавить пожелание».
+  «Обновить» и «Инструменты» перенесены в меню.
 */
 (function () {
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiOYwnD7aozxYFzox4JokcHIZjR-OD7FUXcn16n0YqH1gdHoWqgqYXy2CmIJaiN9o/exec";
@@ -160,8 +161,24 @@
       button.setAttribute("aria-expanded", String(open));
     }, true);
     nav.addEventListener("click", (event) => {
-      if (event.target.closest("a")) setTimeout(closeMenu, 80);
+      if (event.target.closest("a,button")) setTimeout(closeMenu, 80);
     });
+  }
+
+  function ensureNtsButton() {
+    const actions = document.querySelector(".header-actions");
+    if (!actions || actions.querySelector("#mobileNtsModeButton")) return;
+    const button = document.createElement("button");
+    button.id = "mobileNtsModeButton";
+    button.className = "button ghost mobile-top-action";
+    button.type = "button";
+    button.dataset.mobileAction = "nts";
+    button.textContent = "Режим НТС";
+    button.addEventListener("click", () => {
+      document.body.classList.toggle("executive-mode");
+      toast(document.body.classList.contains("executive-mode") ? "Режим НТС включен" : "Обычный режим включен");
+    });
+    actions.insertBefore(button, actions.firstChild);
   }
 
   function isFeedbackButton(node) {
@@ -181,18 +198,54 @@
     return null;
   }
 
-  function markFeedbackButtons() {
-    Array.from(document.querySelectorAll("a, button, [role='button']")).forEach((node) => {
+  function markTopActions() {
+    Array.from(document.querySelectorAll(".header-actions a, .header-actions button")).forEach((node) => {
       const label = cleanText(node.textContent).toLowerCase();
-      const aria = cleanText(node.getAttribute?.("aria-label") || "").toLowerCase();
-      const href = node.getAttribute?.("href") || "";
-      const combined = `${label} ${aria}`;
-      if ((/пожел/.test(combined) && !/скопировать/.test(combined)) || href === "#nts") {
-        node.classList.add("mobile-add-feedback-button");
+      const id = node.id || "";
+      if (id === "refreshData" || label.includes("обнов")) {
+        node.dataset.mobileAction = "refresh";
+        node.classList.add("mobile-menu-only-action");
+      }
+      if (label.includes("инструмент") || id === "toolsMenuToggle" || node.closest("#toolsMenu")) {
+        node.dataset.mobileAction = "tools";
+        node.classList.add("mobile-menu-only-action");
+      }
+      if (/пожел/.test(label) && !/скопировать/.test(label)) {
+        node.classList.add("mobile-add-feedback-button", "mobile-top-action");
         node.dataset.mobileAction = "feedback";
         node.setAttribute("aria-label", "Добавить пожелание НТС");
+        node.textContent = "Добавить пожелание";
+      }
+      if (label.includes("режим нтс") || id === "mobileNtsModeButton") {
+        node.dataset.mobileAction = "nts";
+        node.classList.add("mobile-top-action");
       }
     });
+  }
+
+  function ensureMenuUtilityItems() {
+    const nav = $("#mainNav");
+    if (!nav) return;
+
+    if (!$("#mobileMenuRefresh")) {
+      const refresh = document.createElement("button");
+      refresh.id = "mobileMenuRefresh";
+      refresh.className = "mobile-menu-utility";
+      refresh.type = "button";
+      refresh.textContent = "↻ Обновить данные";
+      refresh.addEventListener("click", () => document.querySelector("#refreshData, #refreshSheet, #refresh")?.click());
+      nav.appendChild(refresh);
+    }
+
+    if (!$("#mobileMenuTools")) {
+      const tools = document.createElement("button");
+      tools.id = "mobileMenuTools";
+      tools.className = "mobile-menu-utility";
+      tools.type = "button";
+      tools.textContent = "▦ Инструменты";
+      tools.addEventListener("click", () => document.querySelector("#toolsMenuToggle")?.click());
+      nav.appendChild(tools);
+    }
   }
 
   function ensureFeedbackModal() {
@@ -322,7 +375,9 @@
   function patchAll() {
     normalizeStickyBar();
     patchMenu();
-    markFeedbackButtons();
+    ensureNtsButton();
+    markTopActions();
+    ensureMenuUtilityItems();
     attachFeedbackClick();
     attachSubmit();
     removeLegacyButtons();
