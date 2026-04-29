@@ -1,6 +1,6 @@
 /*
   Предпоказовый слой надежности интерфейса.
-  Не меняет структуру данных Google Sheets: только страхует кнопки, якоря, внешние ссылки и форму НТС.
+  Не меняет структуру данных Google Sheets: страхует кнопки, якоря, внешние ссылки и форму НТС.
 */
 (function () {
   const NEW_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiOYwnD7aozxYFzox4JokcHIZjR-OD7FUXcn16n0YqH1gdHoWqgqYXy2CmIJaiN9o/exec";
@@ -47,6 +47,12 @@
 
   function markBody() {
     document.body.classList.add("showcase-ready");
+    document.body.classList.remove("showcase-demo");
+    try {
+      localStorage.removeItem("technopark_showcase_demo");
+    } catch (error) {
+      console.warn("Не удалось очистить режим показа", error);
+    }
   }
 
   function fixExternalLinks() {
@@ -169,51 +175,11 @@
     return { total, active, ready, risks, feedback, urgent };
   }
 
-  function ensureShowcaseControls() {
-    if ($("#showcaseControls")) {
-      const copyButton = $("#showcaseCopyBrief");
-      copyButton?.remove();
-      return;
-    }
-    const target = $(".header-actions") || $(".topbar-actions") || $(".topbar__actions") || $(".actions") || $("header") || document.body;
-    const controls = document.createElement("div");
-    controls.className = "showcase-controls icon-only";
-    controls.id = "showcaseControls";
-    controls.innerHTML = `
-      <button class="showcase-demo-icon" id="showcaseDemoToggle" type="button" aria-label="Включить режим показа" title="Режим показа">
-        <span class="showcase-demo-icon-ring"></span>
-        <span class="showcase-demo-icon-core"></span>
-      </button>
-    `;
-    target.appendChild(controls);
-  }
-
-  function updateDemoButton() {
-    const button = $("#showcaseDemoToggle");
-    if (!button) return;
-    const enabled = document.body.classList.contains("showcase-demo");
-    button.setAttribute("aria-label", enabled ? "Выключить режим показа" : "Включить режим показа");
-    button.setAttribute("title", enabled ? "Обычный режим" : "Режим показа");
-    button.setAttribute("aria-pressed", enabled ? "true" : "false");
-  }
-
-  function setDemoMode(enabled) {
-    document.body.classList.toggle("showcase-demo", enabled);
-    try {
-      localStorage.setItem("technopark_showcase_demo", enabled ? "1" : "0");
-    } catch (error) {
-      console.warn("Не удалось сохранить режим показа", error);
-    }
-    updateDemoButton();
-    toast(enabled ? "Режим показа включен" : "Обычный режим включен");
-  }
-
-  function restoreDemoMode() {
-    try {
-      setDemoMode(localStorage.getItem("technopark_showcase_demo") === "1");
-    } catch (error) {
-      updateDemoButton();
-    }
+  function removeShowcaseControls() {
+    $("#showcaseControls")?.remove();
+    $("#showcaseDemoToggle")?.remove();
+    $("#showcaseCopyBrief")?.remove();
+    document.querySelectorAll(".showcase-demo-icon").forEach((node) => node.remove());
   }
 
   function ensureExecutiveBrief() {
@@ -269,8 +235,6 @@
           if (/ошибка|недоступ|не удалось/i.test(status)) toast("Данные не загрузились. Проверьте публикацию таблицы и нажмите обновить еще раз.", true);
         }, 2600);
       }
-
-      if (button.id === "showcaseDemoToggle") setDemoMode(!document.body.classList.contains("showcase-demo"));
 
       if (button.classList.contains("row-toggle")) {
         setTimeout(() => {
@@ -360,7 +324,7 @@
     checklist.id = "showcaseChecklist";
     checklist.innerHTML = `
       <span>Готово к показу</span>
-      <b>Есть режим показа, краткая сводка, проверка кнопок, якорей, внешних ссылок и формы НТС</b>
+      <b>Кнопки, якоря, внешние ссылки и форма НТС проверяются автоматически</b>
     `;
     overview.appendChild(checklist);
   }
@@ -377,10 +341,16 @@
     if (!root || window.__showcaseMetricsObserver) return;
     window.__showcaseMetricsObserver = new MutationObserver(() => {
       clearTimeout(observeMetrics.timer);
-      observeMetrics.timer = setTimeout(updateExecutiveBrief, 180);
+      observeMetrics.timer = setTimeout(() => {
+        removeShowcaseControls();
+        updateExecutiveBrief();
+      }, 180);
     });
     window.__showcaseMetricsObserver.observe(root, { childList: true, subtree: true, characterData: true });
-    setInterval(updateExecutiveBrief, 4000);
+    setInterval(() => {
+      removeShowcaseControls();
+      updateExecutiveBrief();
+    }, 4000);
   }
 
   function init() {
@@ -388,17 +358,18 @@
     fixExternalLinks();
     attachFeedbackOpenEvents();
     smoothAnchors();
-    ensureShowcaseControls();
+    removeShowcaseControls();
     ensureExecutiveBrief();
     addButtonDiagnostics();
     ensureQuickFeedbackFallback();
     improveFormState();
     ensureShowcaseChecklist();
-    restoreDemoMode();
     checkHashOnLoad();
     updateExecutiveBrief();
     observeMetrics();
+    setTimeout(removeShowcaseControls, 300);
     setTimeout(updateExecutiveBrief, 1200);
+    setTimeout(removeShowcaseControls, 1800);
     setTimeout(updateExecutiveBrief, 3200);
   }
 
