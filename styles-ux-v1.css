@@ -1,0 +1,304 @@
+/*
+  Финальный UX-слой v1.0.
+  Делает панель спокойнее: меньше визуального шума, четче иерархия,
+  ключевые управленческие блоки собраны в «Центр управления».
+*/
+
+:root {
+  --ux-gap: 14px;
+}
+
+body.ux-v1-ready main {
+  padding-bottom: 92px;
+}
+
+/* Первый экран стал компактнее и спокойнее */
+body.ux-v1-ready .overview {
+  padding-top: 18px;
+  padding-bottom: 16px;
+}
+
+body.ux-v1-ready .overview-head {
+  gap: 18px;
+}
+
+body.ux-v1-ready .overview h1 {
+  letter-spacing: -0.045em;
+}
+
+body.ux-v1-ready .subhead {
+  max-width: 760px;
+}
+
+body.ux-v1-ready .kpi-grid {
+  gap: 10px;
+}
+
+body.ux-v1-ready .kpi-card {
+  min-height: 102px;
+}
+
+/* Липкая мини-панель KPI */
+.sticky-kpi-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(960px, calc(100vw - 28px));
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  transform: translate(-50%, 20px);
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.sticky-kpi-bar.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.sticky-kpi-bar span,
+.sticky-kpi-bar button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  border-radius: 999px;
+  padding: 0 10px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.sticky-kpi-bar span {
+  background: var(--surface-soft);
+  color: var(--muted);
+}
+
+.sticky-kpi-bar b {
+  margin-right: 4px;
+  color: var(--text);
+}
+
+.sticky-kpi-bar button {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--blue);
+  cursor: pointer;
+}
+
+.sticky-kpi-bar button:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+
+/* Центр управления */
+.control-center {
+  margin-top: 26px;
+}
+
+.control-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.control-tabs button {
+  display: grid;
+  gap: 3px;
+  min-height: 54px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 9px 10px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.control-tabs button:hover {
+  background: var(--blue-soft);
+}
+
+.control-tabs button.is-active {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+
+.control-tabs span {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.control-tabs small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.control-panels {
+  display: grid;
+}
+
+.control-panel {
+  display: none;
+}
+
+.control-panel.is-active {
+  display: block;
+}
+
+.inside-control-center {
+  margin-top: 0 !important;
+}
+
+.inside-control-center > .section-title {
+  display: none;
+}
+
+.inside-control-center .leader-decisions-toolbar,
+.inside-control-center .week-plan-toolbar,
+.inside-control-center .risk-matrix-toolbar {
+  margin-top: 0;
+}
+
+/* Главный маршрут: сначала сводка и готовность, затем центр управления */
+body.ux-v1-ready #leaderBrief,
+body.ux-v1-ready #ntsReadinessPanel,
+body.ux-v1-ready #viewModeSwitcher {
+  margin-top: var(--ux-gap);
+}
+
+/* Технические блоки скрыты по умолчанию */
+body.ux-v1-ready:not(.show-tech-blocks) #dashboardAudit,
+body.ux-v1-ready:not(.show-tech-blocks) #deployStatus,
+body.ux-v1-ready:not(.show-tech-blocks) .methodology-panel,
+body.ux-v1-ready:not(.show-tech-blocks) .data-freshness,
+body.ux-v1-ready:not(.show-tech-blocks) #dataDiagnostic {
+  display: none !important;
+}
+
+body.ux-v1-ready.show-tech-blocks #dashboardAudit,
+body.ux-v1-ready.show-tech-blocks #deployStatus {
+  display: block;
+}
+
+.tech-toggle-button {
+  color: var(--blue) !important;
+}
+
+/* Рабочие разделы ниже центра управления получают более спокойный ритм */
+body.ux-v1-ready #projects,
+body.ux-v1-ready #quality,
+body.ux-v1-ready #ownerLoad,
+body.ux-v1-ready #funnel,
+body.ux-v1-ready #grants {
+  margin-top: 30px;
+}
+
+/* Режим НТС: оставляем только управленческую картину */
+body.ux-v1-ready.executive-mode .toolbar,
+body.ux-v1-ready.executive-mode #projects,
+body.ux-v1-ready.executive-mode #quality,
+body.ux-v1-ready.executive-mode #ownerLoad,
+body.ux-v1-ready.executive-mode #funnel,
+body.ux-v1-ready.executive-mode #grants,
+body.ux-v1-ready.executive-mode .feedback-form,
+body.ux-v1-ready.executive-mode #deployStatus,
+body.ux-v1-ready.executive-mode #dashboardAudit {
+  display: none !important;
+}
+
+body.ux-v1-ready.executive-mode #leaderBrief,
+body.ux-v1-ready.executive-mode #ntsReadinessPanel,
+body.ux-v1-ready.executive-mode #controlCenter {
+  display: grid !important;
+}
+
+body.ux-v1-ready.executive-mode #controlCenter {
+  display: block !important;
+}
+
+/* Меньше визуальной пестроты: карточки становятся более официальными */
+body.ux-v1-ready .leader-brief,
+body.ux-v1-ready .nts-readiness-panel,
+body.ux-v1-ready .control-tabs,
+body.ux-v1-ready .projects-table-card,
+body.ux-v1-ready .quality-layout > *,
+body.ux-v1-ready .funnel-board,
+body.ux-v1-ready .grant-calendar {
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+/* Служебные подсказки не должны спорить с контентом */
+body.ux-v1-ready .view-share-hint {
+  font-size: 12px;
+  opacity: .9;
+}
+
+@media print {
+  .sticky-kpi-bar,
+  .control-tabs,
+  .tech-toggle-button {
+    display: none !important;
+  }
+
+  .control-panel {
+    display: block !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .sticky-kpi-bar {
+    left: 14px;
+    right: 14px;
+    transform: translateY(20px);
+    max-width: none;
+    overflow-x: auto;
+  }
+
+  .sticky-kpi-bar.is-visible {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .control-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  body.ux-v1-ready main {
+    padding-bottom: 118px;
+  }
+
+  .sticky-kpi-bar {
+    border-radius: var(--radius);
+    align-items: flex-start;
+  }
+
+  .control-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .sticky-kpi-bar span:nth-of-type(2),
+  .sticky-kpi-bar span:nth-of-type(3) {
+    display: none;
+  }
+}
