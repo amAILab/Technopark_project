@@ -1,6 +1,6 @@
 /*
   Мобильная полировка перед показом.
-  Исправляет верхнюю панель, выпадающее меню, нижнюю KPI-панель и режим показа на телефонах.
+  Верхняя панель: только две крупные кнопки - «Режим НТС» и «Добавить пожелание».
 */
 
 @media (max-width: 760px) {
@@ -74,16 +74,15 @@
   }
 
   body.mobile-polish-ready.menu-open #menuToggle::before,
-  body.mobile-polish-ready.menu-open .menu-button::before,
-  body.mobile-polish-ready .main-nav.is-open ~ #menuToggle::before {
+  body.mobile-polish-ready.menu-open .menu-button::before {
     content: "×";
   }
 
   body.mobile-polish-ready .header-actions {
     grid-column: 1 / -1 !important;
     display: grid !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    gap: 7px !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
     width: 100% !important;
     position: relative;
     z-index: 2;
@@ -96,19 +95,19 @@
   body.mobile-polish-ready .mobile-top-action {
     min-width: 0 !important;
     width: 100% !important;
-    min-height: 48px !important;
-    height: 48px !important;
-    border-radius: 18px !important;
-    padding: 4px 5px !important;
+    min-height: 54px !important;
+    height: 54px !important;
+    border-radius: 20px !important;
+    padding: 5px 10px !important;
     display: grid !important;
     grid-template-rows: 18px auto !important;
     place-items: center !important;
-    gap: 2px !important;
+    gap: 3px !important;
     text-align: center !important;
     white-space: normal !important;
     line-height: 1.05 !important;
-    font-size: 10.5px !important;
-    font-weight: 900 !important;
+    font-size: 12px !important;
+    font-weight: 950 !important;
     letter-spacing: -.01em !important;
   }
 
@@ -121,99 +120,27 @@
   }
 
   body.mobile-polish-ready [data-mobile-action="nts"]::before { content: "◉"; color: #1d4ed8; }
-  body.mobile-polish-ready [data-mobile-action="refresh"]::before { content: "↻"; color: #1d4ed8; }
-  body.mobile-polish-ready [data-mobile-action="tools"]::before { content: "▦"; color: #1d4ed8; }
   body.mobile-polish-ready [data-mobile-action="feedback"]::before { content: "+"; color: #fff; }
 
   body.mobile-polish-ready [data-mobile-action="feedback"] {
     background: var(--blue, #1d4ed8) !important;
     border-color: var(--blue, #1d4ed8) !important;
     color: #fff !important;
+    font-size: 12px !important;
   }
 
-  body.mobile-polish-ready #showcaseCopyBrief,
-  body.mobile-polish-ready button:has(+ #showcaseCopyBrief) {
+  body.mobile-polish-ready [data-mobile-action="refresh"],
+  body.mobile-polish-ready [data-mobile-action="tools"],
+  body.mobile-polish-ready .mobile-menu-only-action,
+  body.mobile-polish-ready #toolsMenu {
     display: none !important;
   }
 
-  body.mobile-polish-ready .showcase-controls {
-    width: auto !important;
-    flex: 0 0 auto !important;
-    display: contents !important;
-  }
-
-  body.mobile-polish-ready .showcase-demo-icon {
-    position: relative !important;
-    display: inline-grid !important;
-    place-items: center !important;
-    width: 100% !important;
-    height: 48px !important;
-    min-width: 0 !important;
-    min-height: 48px !important;
-    border: 1px solid rgba(37, 99, 235, .24) !important;
-    border-radius: 18px !important;
-    padding: 0 !important;
-    background: radial-gradient(circle at 35% 25%, #fff, #eff6ff 55%, #dbeafe) !important;
-    color: #1d4ed8 !important;
-    box-shadow: 0 10px 28px rgba(37, 99, 235, .12) !important;
-    cursor: pointer !important;
-    overflow: hidden !important;
-    font-size: 0 !important;
-  }
-
-  body.mobile-polish-ready .showcase-demo-icon::before {
-    content: "";
-    position: absolute;
-    width: 18px;
-    height: 12px;
-    border: 2px solid currentColor;
-    border-radius: 5px;
-    transform: translateY(-2px);
-  }
-
-  body.mobile-polish-ready .showcase-demo-icon::after {
-    content: "";
-    position: absolute;
-    width: 8px;
-    height: 2px;
-    border-radius: 999px;
-    background: currentColor;
-    transform: translateY(8px);
-  }
-
-  body.mobile-polish-ready .showcase-demo-icon-ring {
-    position: absolute;
-    inset: 5px;
-    border: 1px solid rgba(37, 99, 235, .28);
-    border-radius: 14px;
-    animation: mobileDemoIconPulse 1.9s ease-in-out infinite;
-  }
-
-  body.mobile-polish-ready .showcase-demo-icon-core {
-    position: absolute;
-    right: 10px;
-    top: 9px;
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: #2563eb;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, .12);
-    animation: mobileDemoIconBlink 1.55s ease-in-out infinite;
-  }
-
-  body.mobile-polish-ready.showcase-demo .showcase-demo-icon {
-    border-color: rgba(22, 163, 74, .42) !important;
-    background: radial-gradient(circle at 35% 25%, #fff, #ecfdf5 55%, #bbf7d0) !important;
-    color: #15803d !important;
-  }
-
-  body.mobile-polish-ready.showcase-demo .showcase-demo-icon-ring {
-    border-color: rgba(22, 163, 74, .42);
-  }
-
-  body.mobile-polish-ready.showcase-demo .showcase-demo-icon-core {
-    background: #16a34a;
-    box-shadow: 0 0 0 4px rgba(22, 163, 74, .14);
+  body.mobile-polish-ready #showcaseCopyBrief,
+  body.mobile-polish-ready .showcase-controls,
+  body.mobile-polish-ready .showcase-demo-icon,
+  body.mobile-polish-ready #showcaseDemoToggle {
+    display: none !important;
   }
 
   body.mobile-polish-ready .main-nav {
@@ -238,11 +165,14 @@
     display: grid !important;
   }
 
-  body.mobile-polish-ready .main-nav a {
+  body.mobile-polish-ready .main-nav a,
+  body.mobile-polish-ready .main-nav button,
+  body.mobile-polish-ready .mobile-menu-utility {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    min-height: 42px !important;
+    min-height: 44px !important;
+    border: 0 !important;
     border-radius: 15px !important;
     padding: 8px 10px !important;
     background: var(--surface-soft, #f1f5f9) !important;
@@ -250,11 +180,14 @@
     text-align: center !important;
     font-size: 12.5px !important;
     font-weight: 900 !important;
+    text-decoration: none !important;
   }
 
   body.mobile-polish-ready .main-nav a.is-active,
   body.mobile-polish-ready .main-nav a:hover,
-  body.mobile-polish-ready .main-nav a:focus-visible {
+  body.mobile-polish-ready .main-nav button:hover,
+  body.mobile-polish-ready .main-nav a:focus-visible,
+  body.mobile-polish-ready .main-nav button:focus-visible {
     background: var(--blue-soft, #e8f0ff) !important;
     color: var(--blue, #1d4ed8) !important;
   }
@@ -264,17 +197,6 @@
     right: 14px !important;
     bottom: calc(104px + env(safe-area-inset-bottom, 0px)) !important;
     justify-items: center !important;
-  }
-
-  body.mobile-polish-ready .toast-stack .toast.compact-mode-toast {
-    max-width: max-content !important;
-    min-height: 34px !important;
-    border-radius: 999px !important;
-    padding: 8px 13px !important;
-    background: rgba(15, 23, 42, .92) !important;
-    color: #fff !important;
-    font-size: 12px !important;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, .18) !important;
   }
 
   body.mobile-polish-ready .sticky-kpi-bar {
@@ -335,16 +257,6 @@
   }
 }
 
-@keyframes mobileDemoIconPulse {
-  0%, 100% { transform: scale(.94); opacity: .55; }
-  50% { transform: scale(1.08); opacity: .1; }
-}
-
-@keyframes mobileDemoIconBlink {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: .45; transform: scale(.72); }
-}
-
 @media (max-width: 420px) {
   body.mobile-polish-ready .topbar {
     padding: 8px 10px 10px !important;
@@ -352,17 +264,17 @@
   }
 
   body.mobile-polish-ready .header-actions {
-    gap: 5px !important;
+    gap: 7px !important;
   }
 
   body.mobile-polish-ready .header-actions .button,
   body.mobile-polish-ready .header-actions button,
   body.mobile-polish-ready .header-actions a,
   body.mobile-polish-ready .mobile-top-action {
-    min-height: 44px !important;
-    height: 44px !important;
-    border-radius: 15px !important;
-    font-size: 9.8px !important;
+    min-height: 52px !important;
+    height: 52px !important;
+    border-radius: 18px !important;
+    font-size: 11.2px !important;
   }
 
   body.mobile-polish-ready .sticky-kpi-bar {
