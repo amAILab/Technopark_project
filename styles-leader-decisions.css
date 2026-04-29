@@ -1,6 +1,152 @@
 /*
-  Блок «Решения руководителя».
+  Блок «Решения руководителя» и показатель «Готовность к НТС».
 */
+
+.nts-readiness-panel {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.nts-readiness-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.nts-readiness-main h2 {
+  margin: 0;
+}
+
+.nts-readiness-main span {
+  display: inline-flex;
+  margin-top: 8px;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.nts-readiness-main > strong {
+  font-size: clamp(42px, 7vw, 72px);
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+.nts-readiness-bar {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-soft);
+}
+
+.nts-readiness-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--blue);
+  transition: width .25s ease;
+}
+
+.nts-readiness-panel.is-good .nts-readiness-main > strong,
+.nts-readiness-panel.is-good .nts-readiness-main span {
+  color: var(--green);
+}
+
+.nts-readiness-panel.is-good .nts-readiness-bar span {
+  background: var(--green);
+}
+
+.nts-readiness-panel.is-warn .nts-readiness-main > strong,
+.nts-readiness-panel.is-warn .nts-readiness-main span {
+  color: var(--yellow);
+}
+
+.nts-readiness-panel.is-warn .nts-readiness-bar span {
+  background: var(--yellow);
+}
+
+.nts-readiness-panel.is-danger .nts-readiness-main > strong,
+.nts-readiness-panel.is-danger .nts-readiness-main span {
+  color: var(--red);
+}
+
+.nts-readiness-panel.is-danger .nts-readiness-bar span {
+  background: var(--red);
+}
+
+.nts-readiness-checks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.nts-check {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 8px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  background: #fff;
+}
+
+.nts-check b {
+  display: inline-grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.nts-check strong,
+.nts-check small {
+  display: block;
+}
+
+.nts-check strong {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.nts-check small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.nts-check.ok {
+  border-color: #bbf7d0;
+  background: var(--green-soft);
+}
+
+.nts-check.ok b {
+  color: var(--green);
+  background: #dcfce7;
+}
+
+.nts-check.warn {
+  border-color: #fde68a;
+  background: var(--yellow-soft);
+}
+
+.nts-check.warn b {
+  color: var(--yellow);
+  background: #fef3c7;
+}
 
 .leader-decisions-section {
   margin-top: 26px;
@@ -143,14 +289,20 @@ body.executive-mode #leaderDecisions {
   .leader-decisions-board {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .nts-readiness-checks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
-  .leader-decisions-board {
+  .leader-decisions-board,
+  .nts-readiness-checks {
     grid-template-columns: 1fr;
   }
 
-  .leader-decisions-toolbar {
+  .leader-decisions-toolbar,
+  .nts-readiness-main {
     align-items: flex-start;
     flex-direction: column;
   }
