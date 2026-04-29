@@ -1,0 +1,157 @@
+/*
+  Блок «Решения руководителя».
+*/
+
+.leader-decisions-section {
+  margin-top: 26px;
+}
+
+.leader-decisions-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.leader-decisions-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 12px;
+  background: #fff;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.leader-decisions-toolbar button:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.leader-decisions-toolbar span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.leader-decisions-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.leader-decision {
+  display: grid;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.leader-decision > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.leader-decision span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: 999px;
+  padding: 0 8px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.leader-decision > div strong {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.leader-decision h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.leader-decision p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.leader-decision small {
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.leader-decision.critical {
+  border-color: #fecaca;
+  background: linear-gradient(180deg, #fff1f2, #fff);
+}
+
+.leader-decision.critical span {
+  background: #fee2e2;
+  color: var(--red);
+}
+
+.leader-decision.high {
+  border-color: #fde68a;
+  background: linear-gradient(180deg, var(--yellow-soft), #fff);
+}
+
+.leader-decision.high span {
+  background: #fef3c7;
+  color: var(--yellow);
+}
+
+.leader-decision.medium span {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+body.executive-mode #leaderDecisions {
+  display: block !important;
+}
+
+@media print {
+  .leader-decisions-toolbar {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .leader-decisions-board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .leader-decisions-board {
+    grid-template-columns: 1fr;
+  }
+
+  .leader-decisions-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
