@@ -1,11 +1,13 @@
 /*
-  Режим показа для НТС, сортировка таблицы и копирование строки проекта.
+  Режим показа для НТС, сортировка таблицы, копирование строки проекта,
+  справка по расчетам и горячие клавиши.
   Работает поверх отрисованной таблицы и не меняет Google Sheets.
 */
 
 (function () {
   const SORTABLE_COLUMNS = [1, 2, 3, 4, 5, 6, 7];
   let sortState = { index: null, direction: "asc" };
+  const pageOpenedAt = Date.now();
 
   function cleanText(value) {
     return String(value || "").replace(/\s+/g, " ").trim();
@@ -35,6 +37,18 @@
     actions.insertBefore(button, actions.firstChild);
   }
 
+  function ensureHelpButton() {
+    const actions = document.querySelector(".header-actions");
+    if (!actions || document.querySelector("#dashboardHelpToggle")) return;
+    const button = document.createElement("button");
+    button.className = "button ghost dashboard-help-button";
+    button.id = "dashboardHelpToggle";
+    button.type = "button";
+    button.textContent = "?";
+    button.setAttribute("aria-label", "Горячие клавиши и справка");
+    actions.appendChild(button);
+  }
+
   function toggleExecutiveMode() {
     const enabled = document.body.classList.toggle("executive-mode");
     const button = document.querySelector("#executiveModeToggle");
@@ -62,6 +76,83 @@
     } catch (error) {
       console.warn("Не удалось восстановить режим НТС", error);
     }
+  }
+
+  function ensureDataFreshness() {
+    const syncCard = document.querySelector(".sync-card");
+    if (!syncCard || document.querySelector("#dataFreshness")) return;
+    const freshness = document.createElement("div");
+    freshness.className = "data-freshness is-fresh";
+    freshness.id = "dataFreshness";
+    freshness.innerHTML = `<strong>Данные свежие</strong><small>Автоконтроль времени с момента открытия панели</small>`;
+    syncCard.appendChild(freshness);
+  }
+
+  function updateDataFreshness() {
+    const node = document.querySelector("#dataFreshness");
+    if (!node) return;
+    const minutes = Math.floor((Date.now() - pageOpenedAt) / 60000);
+    const stale = minutes >= 30;
+    node.classList.toggle("is-stale", stale);
+    node.classList.toggle("is-fresh", !stale);
+    node.innerHTML = stale
+      ? `<strong>Данные могут устареть</strong><small>Панель открыта ${minutes} мин. Нажмите «Обновить».</small>`
+      : `<strong>Данные свежие</strong><small>Панель открыта ${minutes} мин.</small>`;
+  }
+
+  function ensureMethodologyPanel() {
+    const quality = document.querySelector("#quality");
+    if (!quality || document.querySelector("#methodologyPanel")) return;
+    const panel = document.createElement("details");
+    panel.className = "methodology-panel";
+    panel.id = "methodologyPanel";
+    panel.innerHTML = `
+      <summary>Как панель считает готовность и риски</summary>
+      <div class="methodology-grid">
+        <article>
+          <strong>Готовность проекта</strong>
+          <p>Если в таблице указан процент готовности, панель использует его. Если процент не указан, сайт рассчитывает ориентировочную готовность по заполненным признакам: описание, ТЗ, ответственный, грант, бюджет, срок, партнер и следующее действие.</p>
+        </article>
+        <article>
+          <strong>Риск проекта</strong>
+          <p>Проект попадает в риск, если нет ответственного, готовности, грантового маршрута, срока, следующего действия, есть просрочка, дедлайн меньше 14 дней или статус связан с решением НТС.</p>
+        </article>
+        <article>
+          <strong>Качество данных</strong>
+          <p>Блок показывает не качество проекта, а качество заполнения реестра. Низкий процент означает, что управленческие выводы могут быть неточными.</p>
+        </article>
+      </div>
+    `;
+    quality.appendChild(panel);
+  }
+
+  function ensureHelpPanel() {
+    if (document.querySelector("#dashboardHelpPanel")) return;
+    const panel = document.createElement("aside");
+    panel.className = "dashboard-help-panel";
+    panel.id = "dashboardHelpPanel";
+    panel.setAttribute("aria-hidden", "true");
+    panel.innerHTML = `
+      <div class="dashboard-help-card">
+        <div class="help-head"><strong>Горячие клавиши</strong><button type="button" id="closeDashboardHelp" aria-label="Закрыть справку">×</button></div>
+        <dl>
+          <dt>/</dt><dd>перейти в поиск проектов</dd>
+          <dt>Esc</dt><dd>сбросить фокус и закрыть справку</dd>
+          <dt>N</dt><dd>включить или выключить режим НТС</dd>
+          <dt>P</dt><dd>печать повестки НТС</dd>
+          <dt>?</dt><dd>открыть эту справку</dd>
+        </dl>
+      </div>
+    `;
+    document.body.appendChild(panel);
+  }
+
+  function toggleHelp(force) {
+    const panel = document.querySelector("#dashboardHelpPanel");
+    if (!panel) return;
+    const open = typeof force === "boolean" ? force : !panel.classList.contains("is-visible");
+    panel.classList.toggle("is-visible", open);
+    panel.setAttribute("aria-hidden", String(!open));
   }
 
   function ensureSortableHeaders() {
@@ -181,13 +272,35 @@
     showToast.timer = setTimeout(() => toast.classList.remove("is-visible"), 2800);
   }
 
+  function isTypingTarget(target) {
+    const tag = target?.tagName?.toLowerCase();
+    return tag === "input" || tag === "textarea" || tag === "select" || target?.isContentEditable;
+  }
+
   function attachEvents() {
     document.addEventListener("click", (event) => {
       if (event.target.closest("#executiveModeToggle")) toggleExecutiveMode();
+      if (event.target.closest("#dashboardHelpToggle")) toggleHelp();
+      if (event.target.closest("#closeDashboardHelp")) toggleHelp(false);
       const sortButton = event.target.closest("[data-sort-index]");
       if (sortButton) sortProjects(Number(sortButton.dataset.sortIndex));
       const copyButton = event.target.closest("[data-copy-project]");
       if (copyButton) copyProject(copyButton.dataset.copyProject);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (isTypingTarget(event.target)) {
+        if (event.key === "Escape") event.target.blur();
+        return;
+      }
+      if (event.key === "/") {
+        event.preventDefault();
+        document.querySelector("#searchInput")?.focus();
+      }
+      if (event.key === "Escape") toggleHelp(false);
+      if (event.key.toLowerCase() === "n") toggleExecutiveMode();
+      if (event.key.toLowerCase() === "p") document.querySelector("#printNtsAgenda")?.click();
+      if (event.key === "?" || (event.shiftKey && event.key === "/")) toggleHelp();
     });
   }
 
@@ -205,14 +318,21 @@
 
   function init() {
     ensureExecutiveButton();
+    ensureHelpButton();
     restoreExecutiveMode();
+    ensureDataFreshness();
+    ensureMethodologyPanel();
+    ensureHelpPanel();
     ensureSortableHeaders();
     ensureRowCopyButtons();
     attachEvents();
     watchTable();
+    updateDataFreshness();
+    setInterval(updateDataFreshness, 60000);
     setTimeout(() => {
       ensureSortableHeaders();
       ensureRowCopyButtons();
+      updateDataFreshness();
     }, 1400);
   }
 
