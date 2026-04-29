@@ -1,5 +1,5 @@
 /*
-  Блок «Решения руководителя».
+  Блок «Решения руководителя» и показатель «Готовность к НТС».
   Формирует список управленческих решений по данным уже отрисованной таблицы проектов.
   Google Sheets не изменяет.
 */
@@ -42,14 +42,7 @@
   }
 
   function makeDecision(type, row, reason, action, priority = "medium") {
-    return {
-      type,
-      project: projectName(row),
-      owner: owner(row),
-      reason,
-      action,
-      priority,
-    };
+    return { type, project: projectName(row), owner: owner(row), reason, action, priority };
   }
 
   function collectDecisions() {
@@ -128,6 +121,86 @@
     return decisions.sort((a, b) => priorityWeight[a.priority] - priorityWeight[b.priority] || a.project.localeCompare(b.project, "ru"));
   }
 
+  function ensureNtsReadinessPanel() {
+    const overview = document.querySelector("#overview");
+    if (!overview || document.querySelector("#ntsReadinessPanel")) return;
+
+    const panel = document.createElement("section");
+    panel.className = "nts-readiness-panel";
+    panel.id = "ntsReadinessPanel";
+    panel.innerHTML = `
+      <article class="nts-readiness-main">
+        <div>
+          <p class="eyebrow">Готовность к заседанию</p>
+          <h2>Готовность к НТС</h2>
+          <span id="ntsReadinessStatus">Ожидание данных</span>
+        </div>
+        <strong id="ntsReadinessValue">0%</strong>
+      </article>
+      <div class="nts-readiness-bar"><span id="ntsReadinessBar" style="width:0%"></span></div>
+      <div class="nts-readiness-checks" id="ntsReadinessChecks"></div>
+    `;
+    overview.insertAdjacentElement("afterend", panel);
+  }
+
+  function collectNtsReadiness() {
+    const projectRows = rows();
+    const total = projectRows.length;
+    const decisions = collectDecisions();
+    const agendaCount = document.querySelectorAll("#ntsAgenda .agenda-item").length;
+    const feedbackCount = Number(cleanText(document.querySelector("#kpiFeedback")?.textContent || "0")) || document.querySelectorAll("#feedbackFeed .feedback-item").length;
+    const actionCount = document.querySelectorAll("#actionBoard .action-row:not(.action-head)").length;
+
+    const noOwner = projectRows.filter((row) => normalizeText(owner(row)).includes("не указан") || normalizeText(owner(row)).includes("требует уточнения")).length;
+    const noDeadline = projectRows.filter((row) => normalizeText(deadline(row)).includes("нет срока") || !deadline(row)).length;
+    const noGrant = projectRows.filter((row) => normalizeText(grant(row)).includes("не выбран") || !grant(row)).length;
+    const critical = decisions.filter((item) => item.priority === "critical").length;
+
+    const checks = [
+      { label: "Проекты загружены", ok: total > 0, weight: 15, hint: total ? `${total} проектов` : "проектов нет" },
+      { label: "Повестка НТС сформирована", ok: agendaCount > 0 || decisions.length > 0, weight: 20, hint: agendaCount ? `${agendaCount} пунктов` : `${decisions.length} решений` },
+      { label: "Ответственные заполнены", ok: total > 0 && noOwner === 0, weight: 20, hint: noOwner ? `без ответственного: ${noOwner}` : "все назначены" },
+      { label: "Сроки заполнены", ok: total > 0 && noDeadline === 0, weight: 15, hint: noDeadline ? `без срока: ${noDeadline}` : "сроки указаны" },
+      { label: "Грантовые маршруты понятны", ok: total > 0 && noGrant === 0, weight: 10, hint: noGrant ? `без гранта: ${noGrant}` : "маршруты указаны" },
+      { label: "Есть список решений", ok: decisions.length > 0 || actionCount === 0, weight: 10, hint: decisions.length ? `${decisions.length} решений` : "решений нет" },
+      { label: "Критические вопросы выделены", ok: critical > 0 || decisions.length === 0, weight: 5, hint: critical ? `срочно: ${critical}` : "критических нет" },
+      { label: "Пожелания НТС учтены", ok: feedbackCount > 0, weight: 5, hint: feedbackCount ? `${feedbackCount} сообщений` : "пожеланий нет" },
+    ];
+
+    const maxScore = checks.reduce((sum, item) => sum + item.weight, 0);
+    const score = Math.round((checks.reduce((sum, item) => sum + (item.ok ? item.weight : 0), 0) / maxScore) * 100);
+    return { score, checks, critical, decisions: decisions.length, total };
+  }
+
+  function renderNtsReadiness() {
+    const value = document.querySelector("#ntsReadinessValue");
+    const bar = document.querySelector("#ntsReadinessBar");
+    const status = document.querySelector("#ntsReadinessStatus");
+    const checksNode = document.querySelector("#ntsReadinessChecks");
+    if (!value || !bar || !checksNode) return;
+
+    const result = collectNtsReadiness();
+    value.textContent = `${result.score}%`;
+    bar.style.width = `${result.score}%`;
+
+    const statusText = result.score >= 85 ? "Можно показывать на НТС" : result.score >= 65 ? "Нужна короткая доработка" : "Есть существенные пробелы";
+    if (status) status.textContent = statusText;
+
+    const panel = document.querySelector("#ntsReadinessPanel");
+    if (panel) {
+      panel.classList.toggle("is-good", result.score >= 85);
+      panel.classList.toggle("is-warn", result.score >= 65 && result.score < 85);
+      panel.classList.toggle("is-danger", result.score < 65);
+    }
+
+    checksNode.innerHTML = result.checks.map((item) => `
+      <article class="nts-check ${item.ok ? "ok" : "warn"}">
+        <b>${item.ok ? "✓" : "!"}</b>
+        <div><strong>${item.label}</strong><small>${item.hint}</small></div>
+      </article>
+    `).join("");
+  }
+
   function ensureSection() {
     const actions = document.querySelector("#actions");
     if (!actions || document.querySelector("#leaderDecisions")) return;
@@ -153,7 +226,7 @@
     actions.insertAdjacentElement("afterend", section);
   }
 
-  function render() {
+  function renderDecisions() {
     const board = document.querySelector("#leaderDecisionsBoard");
     const count = document.querySelector("#leaderDecisionsCount");
     if (!board) return;
@@ -180,12 +253,19 @@
     `).join("");
   }
 
+  function render() {
+    renderDecisions();
+    renderNtsReadiness();
+  }
+
   function buildText() {
     const decisions = collectDecisions();
-    if (!decisions.length) return "Решения руководителя: критических решений нет.";
+    const nts = collectNtsReadiness();
+    if (!decisions.length) return `Решения руководителя: критических решений нет.\nГотовность к НТС: ${nts.score}%.`;
     return [
       "Решения руководителя - Технопарк РГСУ",
       `Дата: ${new Date().toLocaleString("ru-RU")}`,
+      `Готовность к НТС: ${nts.score}%`,
       "",
       ...decisions.map((item, index) => [
         `${index + 1}. ${item.type}: ${item.project}`,
@@ -246,6 +326,7 @@
   }
 
   function init() {
+    ensureNtsReadinessPanel();
     ensureSection();
     attachEvents();
     observeTable();
