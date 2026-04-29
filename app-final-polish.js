@@ -5,7 +5,7 @@
 */
 
 (function () {
-  const VERSION = "v6.0";
+  const VERSION = "v6.1 · show";
 
   function cleanText(value) {
     return String(value || "").replace(/\s+/g, " ").trim();
@@ -122,6 +122,14 @@
     showToast.timer = setTimeout(() => toast.classList.remove("is-visible"), 2600);
   }
 
+  function loadShowcaseLayer() {
+    if (document.querySelector('script[src="app-showcase-fix.js"]')) return;
+    const script = document.createElement("script");
+    script.src = "app-showcase-fix.js";
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+
   function attachEvents() {
     window.addEventListener("scroll", toggleBackToTop, { passive: true });
     document.addEventListener("click", (event) => {
@@ -151,6 +159,7 @@
     attachEvents();
     observeData();
     toggleBackToTop();
+    loadShowcaseLayer();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
