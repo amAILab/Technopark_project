@@ -1,0 +1,25 @@
+/*
+  Локальная настройка логотипа на основе скульптуры.
+  Делает изображение аккуратной круглой эмблемой в шапке сайта.
+*/
+
+.brand img {
+  width: 48px;
+  height: 48px;
+  border: 2px solid #dbeafe;
+  border-radius: 999px;
+  background: #eff6ff;
+  object-fit: cover;
+  box-shadow: 0 8px 22px rgba(29, 78, 216, 0.16);
+}
+
+.brand:hover img {
+  border-color: #93c5fd;
+}
+
+@media (max-width: 760px) {
+  .brand img {
+    width: 42px;
+    height: 42px;
+  }
+}
