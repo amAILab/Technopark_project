@@ -1,6 +1,6 @@
 /*
   Мобильная полировка перед показом.
-  Делает меню, нижнюю панель и режим показа аккуратнее на телефоне.
+  Делает меню и нижнюю панель аккуратнее на телефоне.
 */
 (function () {
   function $(selector) {
@@ -21,6 +21,12 @@
 
   function markReady() {
     document.body.classList.add("mobile-polish-ready");
+    document.body.classList.remove("showcase-demo");
+    try {
+      localStorage.removeItem("technopark_showcase_demo");
+    } catch (error) {
+      console.warn("Не удалось очистить режим показа", error);
+    }
   }
 
   function normalizeStickyBar() {
@@ -72,34 +78,30 @@
     if (addButton) addButton.classList.add("mobile-add-feedback-button");
   }
 
-  function removeCopyBriefButtons() {
-    Array.from(document.querySelectorAll("a, button")).forEach((node) => {
+  function removeLegacyButtons() {
+    Array.from(document.querySelectorAll("a, button, .showcase-controls, .showcase-demo-icon")).forEach((node) => {
       const label = cleanText(node.textContent).toLowerCase();
-      if (node.id === "showcaseCopyBrief" || label.includes("скопировать сводку")) {
+      if (
+        node.id === "showcaseCopyBrief" ||
+        node.id === "showcaseDemoToggle" ||
+        node.id === "showcaseControls" ||
+        node.classList?.contains("showcase-demo-icon") ||
+        label.includes("скопировать сводку") ||
+        label.includes("режим показа") ||
+        label.includes("обычный режим")
+      ) {
         node.remove();
       }
     });
   }
 
-  function ensureDemoIcon() {
-    const button = $("#showcaseDemoToggle");
-    if (!button) return;
-
-    button.classList.remove("button", "ghost", "showcase-control");
-    button.classList.add("showcase-demo-icon");
-    button.innerHTML = `<span class="showcase-demo-icon-ring"></span><span class="showcase-demo-icon-core"></span>`;
-    button.setAttribute("aria-label", document.body.classList.contains("showcase-demo") ? "Выключить режим показа" : "Включить режим показа");
-    button.setAttribute("title", document.body.classList.contains("showcase-demo") ? "Обычный режим" : "Режим показа");
-  }
-
-  function patchDemoToast() {
+  function removeDemoToasts() {
     const stack = $("#toastStack");
     if (!stack) return;
     Array.from(stack.querySelectorAll(".toast")).forEach((toast) => {
       const label = cleanText(toast.textContent).toLowerCase();
-      if (label.includes("режим показа включен") || label.includes("обычный режим включен")) {
-        toast.classList.add("compact-mode-toast");
-        setTimeout(() => toast.remove(), 950);
+      if (label.includes("режим показа") || label.includes("обычный режим")) {
+        toast.remove();
       }
     });
   }
@@ -108,9 +110,8 @@
     normalizeStickyBar();
     patchMenu();
     patchHeaderActions();
-    removeCopyBriefButtons();
-    ensureDemoIcon();
-    patchDemoToast();
+    removeLegacyButtons();
+    removeDemoToasts();
   }
 
   function observe() {
