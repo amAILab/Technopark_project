@@ -67,6 +67,87 @@
     button?.setAttribute("aria-expanded", "false");
   }
 
+  function feedbackForm() {
+    return $("#ntsForm") || $("#ntsFeedbackForm") || $("#showcaseQuickFeedbackForm");
+  }
+
+  function feedbackSection() {
+    const form = feedbackForm();
+    return $("#nts") || $("#nts-feedback") || form?.closest("section") || $("main") || document.body;
+  }
+
+  function isFeedbackTrigger(node) {
+    const control = node?.closest?.("a, button");
+    if (!control) return false;
+    const label = cleanText(control.textContent).toLowerCase();
+    const href = control.getAttribute("href") || "";
+    return /добавить\s+пожелание|оставить\s+пожелание|пожелание\s+нтс/.test(label) || (href === "#nts" && /добавить|оставить|пожелан/.test(label));
+  }
+
+  function ensureQuickFeedbackFallback() {
+    if (feedbackForm() || $("#showcaseQuickFeedback")) return;
+    const section = document.createElement("section");
+    section.className = "section showcase-quick-feedback";
+    section.id = "showcaseQuickFeedback";
+    section.innerHTML = `
+      <div class="section-title compact">
+        <div>
+          <p class="eyebrow">Научно-технический совет</p>
+          <h2>Добавить пожелание НТС</h2>
+        </div>
+        <p>Резервная форма для версии показа. Запись отправляется в Google Таблицу.</p>
+      </div>
+      <form class="feedback-form" id="showcaseQuickFeedbackForm">
+        <label><span>ФИО</span><input name="author" required placeholder="Фамилия Имя Отчество"></label>
+        <label><span>Роль / статус</span><input name="role" placeholder="член НТС, эксперт, руководитель направления"></label>
+        <label><span>Проект</span><input name="project" placeholder="Ко всему портфелю или название проекта"></label>
+        <label><span>Приоритет</span><select name="priority"><option value="средний">средний</option><option value="низкий">низкий</option><option value="высокий">высокий</option><option value="критический">критический</option></select></label>
+        <label class="wide"><span>Текст пожелания</span><textarea name="message" rows="5" required placeholder="Напишите пожелание, замечание, риск, идею или вопрос"></textarea></label>
+        <button class="button primary wide" type="submit">Отправить пожелание</button>
+      </form>
+    `;
+    const main = $("main") || document.body;
+    main.appendChild(section);
+  }
+
+  function openFeedbackForm() {
+    ensureQuickFeedbackFallback();
+    const form = feedbackForm();
+    const section = feedbackSection();
+    if (!form || !section) {
+      toast("Форма пожеланий НТС не найдена. Обновите страницу.", true);
+      return;
+    }
+
+    document.body.classList.add("showcase-feedback-open");
+    section.hidden = false;
+    form.hidden = false;
+    section.classList.add("showcase-form-highlight");
+    form.classList.add("showcase-form-highlight");
+
+    closeMobileMenu();
+    setTimeout(() => {
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+      const firstField = form.querySelector("input, textarea, select");
+      setTimeout(() => firstField?.focus({ preventScroll: true }), 420);
+      toast("Форма пожелания НТС открыта");
+    }, 80);
+
+    setTimeout(() => {
+      section.classList.remove("showcase-form-highlight");
+      form.classList.remove("showcase-form-highlight");
+    }, 2600);
+  }
+
+  function attachFeedbackOpenEvents() {
+    document.addEventListener("click", (event) => {
+      if (!isFeedbackTrigger(event.target)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      openFeedbackForm();
+    }, true);
+  }
+
   function smoothAnchors() {
     document.addEventListener("click", (event) => {
       const link = event.target.closest('a[href^="#"]');
@@ -282,7 +363,7 @@
   }
 
   function improveFormState() {
-    const forms = [$("#ntsForm"), $("#ntsFeedbackForm")].filter(Boolean);
+    const forms = [$("#ntsForm"), $("#ntsFeedbackForm"), $("#showcaseQuickFeedbackForm")].filter(Boolean);
     forms.forEach((form) => {
       if (form.dataset.showcaseFixed) return;
       form.dataset.showcaseFixed = "1";
@@ -329,10 +410,12 @@
   function init() {
     markBody();
     fixExternalLinks();
+    attachFeedbackOpenEvents();
     smoothAnchors();
     ensureShowcaseControls();
     ensureExecutiveBrief();
     addButtonDiagnostics();
+    ensureQuickFeedbackFallback();
     improveFormState();
     ensureShowcaseChecklist();
     restoreDemoMode();
