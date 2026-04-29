@@ -1,7 +1,7 @@
 /*
-  Небольшая надстройка над app-compact.js.
-  Добавляет быстрые управленческие фильтры, счетчик найденных проектов,
-  раскрытие всех строк и печать повестки НТС без изменения Google Sheets.
+  Надстройка над app-compact.js.
+  Работает по готовой DOM-таблице, поэтому не зависит от внутренних const-переменных
+  основного скрипта и не меняет структуру Google Sheets.
 */
 
 (function () {
@@ -16,34 +16,54 @@
     { key: "nts", label: "На НТС" },
   ];
 
-  const toolState = {
-    active: "all",
-    ready: false,
-  };
+  let activeFilter = "all";
 
   function normalizeText(value) {
     return String(value || "").trim().toLowerCase().replaceAll("ё", "е");
   }
 
-  function daysUntilLocal(iso) {
-    if (!iso) return Infinity;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return Math.ceil((new Date(`${iso}T00:00:00`) - today) / 86400000);
-  }
-
-  function getProjectList() {
-    return Array.isArray(window.state?.projects) ? window.state.projects : [];
-  }
-
-  function getFilteredProjectRows() {
+  function getProjectRows() {
     return Array.from(document.querySelectorAll("#projectTable .project-row"));
+  }
+
+  function safeCss(value) {
+    return window.CSS && CSS.escape ? CSS.escape(value) : String(value).replaceAll('"', '\\"');
+  }
+
+  function getDetailRow(uid) {
+    if (!uid) return null;
+    return document.querySelector(`[data-detail="${safeCss(uid)}"]`);
+  }
+
+  function rowText(row) {
+    const detail = getDetailRow(row.dataset.project);
+    return normalizeText(`${row.textContent || ""} ${detail?.textContent || ""}`);
+  }
+
+  function rowHasDeadlineWithin14(row) {
+    const text = rowText(row);
+    const match = text.match(/дедлайн через\s*(\d+)\s*дн/);
+    if (!match) return false;
+    const days = Number(match[1]);
+    return Number.isFinite(days) && days >= 0 && days <= 14;
+  }
+
+  function rowMatches(row, key) {
+    const text = rowText(row);
+    if (key === "all") return true;
+    if (key === "risk") return !text.includes("рисков нет");
+    if (key === "no-owner") return text.includes("не указан") || text.includes("ответственный не указан");
+    if (key === "no-readiness") return text.includes("расчет") || text.includes("нет процента готовности");
+    if (key === "no-grant") return text.includes("не выбран") || text.includes("маршрут не выбран") || text.includes("нет грантового маршрута");
+    if (key === "no-deadline") return text.includes("нет срока");
+    if (key === "deadline-14") return rowHasDeadlineWithin14(row);
+    if (key === "nts") return text.includes("нтс");
+    return true;
   }
 
   function ensureToolbar() {
     const toolbar = document.querySelector(".toolbar");
     if (!toolbar || document.querySelector("#quickFilters")) return;
-
     const quickFilters = document.createElement("section");
     quickFilters.className = "quick-filters";
     quickFilters.id = "quickFilters";
@@ -55,7 +75,6 @@
   function ensureProjectTools() {
     const tableCard = document.querySelector(".projects-table-card");
     if (!tableCard || document.querySelector("#projectTools")) return;
-
     const tools = document.createElement("div");
     tools.className = "project-tools";
     tools.id = "projectTools";
@@ -73,109 +92,37 @@
   function ensurePrintButton() {
     const ntsTitle = document.querySelector("#nts .section-title");
     if (!ntsTitle || document.querySelector("#printNtsAgenda")) return;
-
     ntsTitle.classList.add("with-actions");
     const actions = document.createElement("div");
     actions.className = "section-actions";
     actions.innerHTML = `<button class="button ghost" id="printNtsAgenda" type="button">Печать повестки</button>`;
     ntsTitle.appendChild(actions);
-
     const note = document.createElement("p");
     note.className = "print-only-note";
     note.textContent = "Печатная версия сформирована из текущих данных панели Технопарка РГСУ.";
     document.querySelector("#nts")?.insertAdjacentElement("afterbegin", note);
   }
 
-  function applyQuickFilter(key) {
-    const projects = getProjectList();
-    const searchInput = document.querySelector("#searchInput");
-    const statusFilter = document.querySelector("#statusFilter");
-    const ownerFilter = document.querySelector("#ownerFilter");
-    const readinessFilter = document.querySelector("#readinessFilter");
-    const riskFilter = document.querySelector("#riskFilter");
-
-    toolState.active = key;
+  function updateActiveButton(key) {
+    activeFilter = key;
     document.querySelectorAll("[data-fast-filter]").forEach((button) => {
       button.classList.toggle("is-active", button.dataset.fastFilter === key);
     });
-
-    if (!searchInput || !statusFilter || !ownerFilter || !readinessFilter || !riskFilter) return;
-
-    searchInput.value = "";
-    statusFilter.value = "all";
-    ownerFilter.value = "all";
-    readinessFilter.value = "all";
-    riskFilter.value = "all";
-
-    if (key === "risk") riskFilter.value = "risk";
-    if (key === "no-readiness") readinessFilter.value = "unknown";
-    if (key === "no-owner") ownerFilter.value = "требует уточнения";
-    if (key === "no-grant") searchInput.value = "не выбран";
-    if (key === "no-deadline") searchInput.value = "нет срока";
-    if (key === "nts") statusFilter.value = Array.from(statusFilter.options).find((option) => normalizeText(option.value).includes("нтс"))?.value || "all";
-
-    // Для дедлайна 14 дней и части фильтров используем временную пометку в поиске,
-    // а затем дополнительно скрываем строки после стандартного renderProjects.
-    if (key === "deadline-14") searchInput.value = "";
-
-    searchInput.dispatchEvent(new Event("input", { bubbles: true }));
-    statusFilter.dispatchEvent(new Event("change", { bubbles: true }));
-    ownerFilter.dispatchEvent(new Event("change", { bubbles: true }));
-    readinessFilter.dispatchEvent(new Event("change", { bubbles: true }));
-    riskFilter.dispatchEvent(new Event("change", { bubbles: true }));
-
-    setTimeout(() => postFilterRows(projects), 240);
   }
 
-  function postFilterRows(projects = getProjectList()) {
-    const key = toolState.active;
-    const rows = getFilteredProjectRows();
-    rows.forEach((row) => {
+  function applyDomFilter(key = activeFilter) {
+    updateActiveButton(key);
+    getProjectRows().forEach((row) => {
       const uid = row.dataset.project;
-      const project = projects.find((item) => item.uid === uid);
-      const detail = document.querySelector(`[data-detail="${CSS.escape(uid)}"]`);
-      let visible = true;
-      if (project) {
-        if (key === "no-grant") visible = !project.grant;
-        if (key === "no-deadline") visible = !project.deadline;
-        if (key === "deadline-14") {
-          const days = daysUntilLocal(project.deadline);
-          visible = Number.isFinite(days) && days >= 0 && days <= 14;
-        }
-      }
+      const detail = getDetailRow(uid);
+      const visible = rowMatches(row, key);
       row.style.display = visible ? "" : "none";
       if (detail) detail.style.display = visible && detail.classList.contains("is-open") ? "table-row" : "none";
     });
     updateCounter();
   }
 
-  function updateCounter() {
-    const counter = document.querySelector("#projectCounter");
-    if (!counter) return;
-    const rows = getFilteredProjectRows();
-    const visible = rows.filter((row) => row.style.display !== "none").length;
-    const total = getProjectList().length || rows.length;
-    counter.textContent = `Показано проектов: ${visible} из ${total}`;
-  }
-
-  function setAllDetails(open) {
-    document.querySelectorAll("#projectTable .project-detail-row").forEach((detail) => {
-      const uid = detail.dataset.detail;
-      const mainRow = document.querySelector(`[data-project="${CSS.escape(uid)}"]`);
-      const rowVisible = !mainRow || mainRow.style.display !== "none";
-      detail.classList.toggle("is-open", open);
-      detail.style.display = open && rowVisible ? "table-row" : "none";
-    });
-    document.querySelectorAll("#projectTable .row-toggle").forEach((button) => {
-      button.textContent = open ? "−" : "+";
-    });
-  }
-
-  function resetFilters() {
-    toolState.active = "all";
-    document.querySelectorAll("[data-fast-filter]").forEach((button) => {
-      button.classList.toggle("is-active", button.dataset.fastFilter === "all");
-    });
+  function clearNativeFilters() {
     const searchInput = document.querySelector("#searchInput");
     const statusFilter = document.querySelector("#statusFilter");
     const ownerFilter = document.querySelector("#ownerFilter");
@@ -187,13 +134,44 @@
     if (readinessFilter) readinessFilter.value = "all";
     if (riskFilter) riskFilter.value = "all";
     searchInput?.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  function applyQuickFilter(key) {
+    clearNativeFilters();
+    setTimeout(() => applyDomFilter(key), 280);
+  }
+
+  function updateCounter() {
+    const counter = document.querySelector("#projectCounter");
+    if (!counter) return;
+    const rows = getProjectRows();
+    const visible = rows.filter((row) => row.style.display !== "none").length;
+    counter.textContent = `Показано проектов: ${visible} из ${rows.length}`;
+  }
+
+  function setAllDetails(open) {
+    document.querySelectorAll("#projectTable .project-detail-row").forEach((detail) => {
+      const uid = detail.dataset.detail;
+      const mainRow = document.querySelector(`[data-project="${safeCss(uid)}"]`);
+      const rowVisible = !mainRow || mainRow.style.display !== "none";
+      detail.classList.toggle("is-open", open);
+      detail.style.display = open && rowVisible ? "table-row" : "none";
+    });
+    document.querySelectorAll("#projectTable .row-toggle").forEach((button) => {
+      button.textContent = open ? "−" : "+";
+    });
+  }
+
+  function resetFilters() {
+    updateActiveButton("all");
+    clearNativeFilters();
     setTimeout(() => {
-      getFilteredProjectRows().forEach((row) => row.style.display = "");
+      getProjectRows().forEach((row) => { row.style.display = ""; });
       document.querySelectorAll("#projectTable .project-detail-row").forEach((detail) => {
         detail.style.display = detail.classList.contains("is-open") ? "table-row" : "none";
       });
       updateCounter();
-    }, 240);
+    }, 280);
   }
 
   function attachEvents() {
@@ -205,29 +183,24 @@
       if (event.target.closest("#resetFilters")) resetFilters();
       if (event.target.closest("#printNtsAgenda")) window.print();
     });
-
     ["input", "change"].forEach((type) => {
       document.addEventListener(type, (event) => {
         if (["searchInput", "statusFilter", "ownerFilter", "readinessFilter", "riskFilter"].includes(event.target.id)) {
-          if (!event.target.closest(".quick-filters")) toolState.active = toolState.active === "deadline-14" ? "all" : toolState.active;
-          setTimeout(() => postFilterRows(), 260);
+          updateActiveButton("all");
+          setTimeout(updateCounter, 280);
         }
       });
     });
-
-    const table = document.querySelector("#projectTable");
-    table?.addEventListener("click", () => setTimeout(updateCounter, 60));
+    document.querySelector("#projectTable")?.addEventListener("click", () => setTimeout(updateCounter, 80));
   }
 
-  function patchRenderProjects() {
-    if (typeof window.renderProjects !== "function" || window.renderProjects.__patchedByTools) return;
-    const original = window.renderProjects;
-    window.renderProjects = function patchedRenderProjects(...args) {
-      const result = original.apply(this, args);
-      setTimeout(() => postFilterRows(), 0);
-      return result;
-    };
-    window.renderProjects.__patchedByTools = true;
+  function watchProjectTable() {
+    const table = document.querySelector("#projectTable");
+    if (!table || window.__dashboardToolsObserver) return;
+    window.__dashboardToolsObserver = new MutationObserver(() => {
+      setTimeout(() => applyDomFilter(activeFilter), 100);
+    });
+    window.__dashboardToolsObserver.observe(table, { childList: true, subtree: true });
   }
 
   function init() {
@@ -235,16 +208,10 @@
     ensureProjectTools();
     ensurePrintButton();
     attachEvents();
-    patchRenderProjects();
-    setTimeout(() => {
-      postFilterRows();
-      updateCounter();
-    }, 1200);
+    watchProjectTable();
+    setTimeout(() => applyDomFilter("all"), 1300);
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
