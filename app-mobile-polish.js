@@ -1,6 +1,6 @@
 /*
   Мобильная полировка перед показом.
-  Делает меню и нижнюю панель аккуратнее на телефоне.
+  Делает меню, нижнюю панель и режим показа аккуратнее на телефоне.
 */
 (function () {
   function $(selector) {
@@ -30,16 +30,9 @@
     const buttons = Array.from(bar.querySelectorAll("button"));
     const firstButton = buttons[0];
     const lastButton = buttons[buttons.length - 1];
-    const spans = Array.from(bar.querySelectorAll("span"));
 
     if (firstButton) firstButton.textContent = "Панель";
     if (lastButton) lastButton.textContent = "Решения";
-
-    spans.forEach((span) => {
-      const text = cleanText(span.textContent).toLowerCase();
-      if (text.includes("требуют")) span.dataset.mobileHide = "true";
-      if (text.includes("готов") && text.includes("грант")) span.dataset.mobileLabel = "НТС";
-    });
   }
 
   function closeMenu() {
@@ -79,28 +72,64 @@
     if (addButton) addButton.classList.add("mobile-add-feedback-button");
   }
 
+  function removeCopyBriefButtons() {
+    Array.from(document.querySelectorAll("a, button")).forEach((node) => {
+      const label = cleanText(node.textContent).toLowerCase();
+      if (node.id === "showcaseCopyBrief" || label.includes("скопировать сводку")) {
+        node.remove();
+      }
+    });
+  }
+
+  function ensureDemoIcon() {
+    const button = $("#showcaseDemoToggle");
+    if (!button) return;
+
+    button.classList.remove("button", "ghost", "showcase-control");
+    button.classList.add("showcase-demo-icon");
+    button.innerHTML = `<span class="showcase-demo-icon-ring"></span><span class="showcase-demo-icon-core"></span>`;
+    button.setAttribute("aria-label", document.body.classList.contains("showcase-demo") ? "Выключить режим показа" : "Включить режим показа");
+    button.setAttribute("title", document.body.classList.contains("showcase-demo") ? "Обычный режим" : "Режим показа");
+  }
+
+  function patchDemoToast() {
+    const stack = $("#toastStack");
+    if (!stack) return;
+    Array.from(stack.querySelectorAll(".toast")).forEach((toast) => {
+      const label = cleanText(toast.textContent).toLowerCase();
+      if (label.includes("режим показа включен") || label.includes("обычный режим включен")) {
+        toast.classList.add("compact-mode-toast");
+        setTimeout(() => toast.remove(), 950);
+      }
+    });
+  }
+
+  function patchAll() {
+    normalizeStickyBar();
+    patchMenu();
+    patchHeaderActions();
+    removeCopyBriefButtons();
+    ensureDemoIcon();
+    patchDemoToast();
+  }
+
   function observe() {
     if (window.__mobilePolishObserver) return;
     window.__mobilePolishObserver = new MutationObserver(() => {
       clearTimeout(observe.timer);
-      observe.timer = setTimeout(() => {
-        normalizeStickyBar();
-        patchMenu();
-        patchHeaderActions();
-      }, 120);
+      observe.timer = setTimeout(patchAll, 80);
     });
-    window.__mobilePolishObserver.observe(document.body, { childList: true, subtree: true });
+    window.__mobilePolishObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
   }
 
   function init() {
     loadStyle();
     markReady();
-    normalizeStickyBar();
-    patchMenu();
-    patchHeaderActions();
+    patchAll();
     observe();
-    setTimeout(normalizeStickyBar, 1200);
-    setTimeout(normalizeStickyBar, 3600);
+    setTimeout(patchAll, 500);
+    setTimeout(patchAll, 1200);
+    setTimeout(patchAll, 3600);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
