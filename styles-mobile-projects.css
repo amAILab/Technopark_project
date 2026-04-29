@@ -1,0 +1,169 @@
+/*
+  Мобильные карточки проектов.
+*/
+
+.mobile-projects {
+  display: none;
+}
+
+.mobile-projects-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.mobile-projects-head strong {
+  font-size: 16px;
+}
+
+.mobile-projects-head span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.mobile-projects-list {
+  display: grid;
+  gap: 10px;
+}
+
+.mobile-project-card {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.mobile-project-card header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mobile-project-card h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.mobile-project-card header small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.mobile-project-card header strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 18px;
+  letter-spacing: -0.04em;
+}
+
+.mobile-project-card.low header strong {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.mobile-project-card.middle header strong {
+  background: var(--yellow-soft);
+  color: var(--yellow);
+}
+
+.mobile-project-card.ready header strong {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.mobile-project-card.submit header strong {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.mobile-project-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.mobile-project-meta span {
+  display: grid;
+  gap: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 9px;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.mobile-project-meta b {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.mobile-project-meta .danger {
+  border-color: #fecaca;
+  background: #fff1f2;
+  color: var(--red);
+}
+
+.mobile-project-meta .warn {
+  border-color: #fde68a;
+  background: var(--yellow-soft);
+  color: var(--yellow);
+}
+
+.mobile-project-meta .ok {
+  border-color: #bbf7d0;
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.mobile-project-card button {
+  min-height: 38px;
+  border: 1px solid var(--blue);
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.mobile-project-card button:hover {
+  background: var(--blue);
+  color: #fff;
+}
+
+.project-row.mobile-highlight td {
+  background: var(--blue-soft) !important;
+}
+
+@media (max-width: 760px) {
+  .projects-table-card {
+    display: none !important;
+  }
+
+  .mobile-projects {
+    display: block;
+  }
+
+  .mobile-project-meta {
+    grid-template-columns: 1fr;
+  }
+}
