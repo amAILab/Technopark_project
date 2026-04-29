@@ -43,7 +43,7 @@
       <span><strong>Технопарк РГСУ</strong><small>Панель руководителя и НТС</small></span>
     </a>
 
-    <button class="menu-button" id="menuToggle" type="button" aria-label="Открыть меню" aria-expanded="false">Меню</button>
+    <button class="menu-button" id="menuToggle" type="button" aria-label="Открыть меню" aria-controls="mainNav" aria-expanded="false">Меню</button>
 
     <nav class="main-nav" id="mainNav" aria-label="Разделы панели">
       <a href="#actions">Действия</a>
@@ -60,6 +60,10 @@
     </div>
   </header>
 
+  <noscript>
+    <div class="section" role="alert" style="margin:16px">Для работы панели необходимо включить JavaScript в браузере.</div>
+  </noscript>
+
   <main>
     <section class="overview" id="overview">
       <div class="overview-head">
@@ -73,7 +77,7 @@
             <span class="sync-dot" id="syncDot"></span>
             <div><strong id="syncStatus">Загрузка данных из Google Таблицы...</strong><small id="lastUpdated">Обновление еще не выполнено</small></div>
           </div>
-          <a href="https://docs.google.com/spreadsheets/d/1cNN4cPE1F1dlewJCelJPGUR5EkYUmQyJGb_BOKN4n60/edit" target="_blank" rel="noreferrer">Открыть таблицу</a>
+          <a href="https://docs.google.com/spreadsheets/d/1cNN4cPE1F1dlewJCelJPGUR5EkYUmQyJGb_BOKN4n60/edit" target="_blank" rel="noopener noreferrer">Открыть таблицу</a>
         </aside>
       </div>
 
