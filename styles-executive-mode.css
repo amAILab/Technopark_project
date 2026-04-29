@@ -1,12 +1,183 @@
 /*
-  Режим показа для руководства/НТС и сортировка таблицы проектов.
-  Не меняет данные, только управляет отображением интерфейса.
+  Режим показа для руководства/НТС, сортировка таблицы проектов,
+  справка по расчетам, горячие клавиши и контроль свежести данных.
 */
 
 .executive-mode-button.is-active {
   border-color: var(--blue);
   background: var(--blue);
   color: #fff;
+}
+
+.dashboard-help-button {
+  min-width: 40px;
+  padding-inline: 0;
+  font-size: 17px;
+}
+
+.data-freshness {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+}
+
+.data-freshness strong,
+.data-freshness small {
+  display: block;
+}
+
+.data-freshness strong {
+  font-size: 13px;
+}
+
+.data-freshness small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.data-freshness.is-fresh {
+  border-color: #bbf7d0;
+  background: var(--green-soft);
+}
+
+.data-freshness.is-fresh strong {
+  color: var(--green);
+}
+
+.data-freshness.is-stale {
+  border-color: #fde68a;
+  background: var(--yellow-soft);
+}
+
+.data-freshness.is-stale strong {
+  color: var(--yellow);
+}
+
+.methodology-panel {
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.methodology-panel summary {
+  padding: 15px 16px;
+  color: var(--blue);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.methodology-panel summary:hover {
+  background: var(--blue-soft);
+}
+
+.methodology-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.methodology-grid article {
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+
+.methodology-grid strong {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 14px;
+}
+
+.methodology-grid p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.dashboard-help-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: none;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.38);
+  backdrop-filter: blur(6px);
+}
+
+.dashboard-help-panel.is-visible {
+  display: grid;
+}
+
+.dashboard-help-card {
+  width: min(520px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+.help-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.help-head strong {
+  font-size: 18px;
+}
+
+.help-head button {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.dashboard-help-card dl {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 0;
+  margin: 0;
+  padding: 10px 16px 16px;
+}
+
+.dashboard-help-card dt,
+.dashboard-help-card dd {
+  margin: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.dashboard-help-card dt {
+  color: var(--blue);
+  font-weight: 950;
+  font-size: 16px;
+}
+
+.dashboard-help-card dd {
+  color: var(--muted);
+  font-size: 14px;
 }
 
 body.executive-mode .toolbar,
@@ -100,13 +271,27 @@ body.executive-mode .projects-table {
 
 @media print {
   .executive-mode-button,
-  .row-copy-button {
+  .dashboard-help-button,
+  .row-copy-button,
+  .methodology-panel,
+  .dashboard-help-panel,
+  .data-freshness {
     display: none !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .methodology-grid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 760px) {
   body.executive-mode .projects-table {
     min-width: 680px;
+  }
+
+  .dashboard-help-card dl {
+    grid-template-columns: 54px 1fr;
   }
 }
