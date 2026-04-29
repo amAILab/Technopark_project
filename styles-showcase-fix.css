@@ -1,0 +1,51 @@
+/* Предпоказовые правки: спокойный индикатор готовности и мелкая страховка интерактива */
+.showcase-checklist {
+  align-self: stretch;
+  display: grid;
+  gap: 6px;
+  min-width: min(100%, 300px);
+  border: 1px solid rgba(22, 163, 74, .22);
+  border-radius: var(--radius, 18px);
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(240, 253, 244, .92), rgba(255, 255, 255, .94));
+  color: var(--text, #0f172a);
+}
+
+.showcase-checklist span {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: rgba(22, 163, 74, .1);
+  color: #15803d;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.showcase-checklist b {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.showcase-ready button:disabled {
+  cursor: wait;
+  opacity: .72;
+}
+
+.showcase-ready .main-nav a.is-active {
+  color: var(--blue, #2563eb);
+  background: var(--blue-soft, #eff6ff);
+}
+
+@media (max-width: 860px) {
+  .showcase-checklist {
+    min-width: 0;
+  }
+}
+
+@media print {
+  .showcase-checklist {
+    display: none !important;
+  }
+}
