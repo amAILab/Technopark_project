@@ -6,9 +6,10 @@
   Что делает файл:
   1. Добавляет липкую мини-панель KPI.
   2. Собирает ключевые блоки в «Центр управления» с вкладками.
-  3. Скрывает технические блоки в обычном рабочем режиме.
-  4. Делает режим НТС более чистым.
-  5. Добавляет кнопку «Показать технические блоки» для администратора.
+  3. Добавляет счетчики во вкладки центра управления.
+  4. Скрывает технические блоки в обычном рабочем режиме.
+  5. Делает режим НТС более чистым.
+  6. Добавляет кнопку «Показать технические блоки» для администратора.
 */
 
 (function () {
@@ -25,6 +26,17 @@
 
   function numberText(selector) {
     return cleanText(document.querySelector(selector)?.textContent || "0");
+  }
+
+  function numberFromText(value) {
+    const match = cleanText(value).match(/\d+/);
+    return match ? Number(match[0]) : 0;
+  }
+
+  function countVisible(selector) {
+    return Array.from(document.querySelectorAll(selector)).filter((node) => {
+      return node.offsetParent !== null || node.getClientRects().length > 0;
+    }).length;
   }
 
   function ensureStickyKpi() {
@@ -79,7 +91,7 @@
       <div class="control-tabs" role="tablist" aria-label="Центр управления">
         ${CONTROL_TABS.map((tab, index) => `
           <button type="button" role="tab" data-control-tab="${tab.key}" class="${index === 0 ? "is-active" : ""}">
-            <span>${tab.label}</span><small>${tab.hint}</small>
+            <span>${tab.label}<b class="control-tab-count" data-control-count="${tab.key}">0</b></span><small>${tab.hint}</small>
           </button>
         `).join("")}
       </div>
@@ -109,6 +121,35 @@
         section.classList.add("inside-control-center");
         panel.appendChild(section);
       }
+    });
+    updateControlCounters();
+  }
+
+  function controlCount(key) {
+    if (key === "decisions") {
+      return numberFromText(document.querySelector("#leaderDecisionsCount")?.textContent) || countVisible(".leader-decision");
+    }
+    if (key === "week") {
+      return numberFromText(document.querySelector("#weekPlanCount")?.textContent) || countVisible(".week-task");
+    }
+    if (key === "risks") {
+      const critical = numberFromText(document.querySelector(".risk-zone.critical header b")?.textContent);
+      const packageZone = numberFromText(document.querySelector(".risk-zone.package header b")?.textContent);
+      return critical + packageZone || countVisible(".risk-zone.critical .risk-zone-list button, .risk-zone.package .risk-zone-list button");
+    }
+    if (key === "nts") {
+      return countVisible("#ntsAgenda .agenda-item, #decisionList .agenda-item, #feedbackFeed .feedback-item") || numberFromText(document.querySelector("#kpiFeedback")?.textContent);
+    }
+    return 0;
+  }
+
+  function updateControlCounters() {
+    CONTROL_TABS.forEach((tab) => {
+      const node = document.querySelector(`[data-control-count="${tab.key}"]`);
+      if (!node) return;
+      const value = controlCount(tab.key);
+      node.textContent = String(value);
+      node.classList.toggle("is-zero", value === 0);
     });
   }
 
@@ -194,6 +235,18 @@
       if (event.target.closest("[data-view-mode='work']")) {
         setTechVisible(false);
       }
+
+      if (event.target.closest("[data-fast-filter], #resetFilters, #refreshData")) {
+        setTimeout(updateControlCounters, 600);
+      }
+    });
+
+    ["input", "change"].forEach((type) => {
+      document.addEventListener(type, (event) => {
+        if (["searchInput", "statusFilter", "ownerFilter", "readinessFilter", "riskFilter"].includes(event.target.id)) {
+          setTimeout(updateControlCounters, 420);
+        }
+      });
     });
   }
 
@@ -204,6 +257,7 @@
       setTimeout(() => {
         moveControlSections();
         updateStickyKpi();
+        updateControlCounters();
         ensureTechToggle();
       }, 120);
     });
@@ -225,7 +279,10 @@
     setTimeout(moveControlSections, 4800);
     setTimeout(updateStickyKpi, 1600);
     setTimeout(updateStickyKpi, 3600);
+    setTimeout(updateControlCounters, 2200);
+    setTimeout(updateControlCounters, 5200);
     setInterval(updateStickyKpi, 5000);
+    setInterval(updateControlCounters, 5000);
     toggleStickyKpi();
   }
 
