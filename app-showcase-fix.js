@@ -79,11 +79,15 @@
   }
 
   function isFeedbackTrigger(node) {
-    const control = node?.closest?.("a, button");
+    const control = node?.closest?.("a, button, [role='button'], [data-mobile-action]");
     if (!control) return false;
     const label = cleanText(control.textContent).toLowerCase();
     const href = control.getAttribute("href") || "";
-    return /добавить\s+пожелание|оставить\s+пожелание|пожелание\s+нтс/.test(label) || (href === "#nts" && /добавить|оставить|пожелан/.test(label));
+    const action = control.dataset?.mobileAction || "";
+    if (action === "feedback") return true;
+    if (control.classList?.contains("mobile-add-feedback-button")) return true;
+    if (href === "#nts" && /пожел|нтс|добавить|оставить/.test(label)) return true;
+    return /(^|\s)пожелание($|\s)|пожелания|пожеланий|добавить\s+пожелание|оставить\s+пожелание|пожелание\s+нтс/.test(label);
   }
 
   function ensureQuickFeedbackFallback() {
@@ -124,6 +128,8 @@
     document.body.classList.add("showcase-feedback-open");
     section.hidden = false;
     form.hidden = false;
+    section.style.display = "";
+    form.style.display = "";
     section.classList.add("showcase-form-highlight");
     form.classList.add("showcase-form-highlight");
 
@@ -146,6 +152,7 @@
       if (!isFeedbackTrigger(event.target)) return;
       event.preventDefault();
       event.stopPropagation();
+      event.stopImmediatePropagation();
       openFeedbackForm();
     }, true);
   }
