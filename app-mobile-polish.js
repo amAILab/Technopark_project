@@ -1,6 +1,6 @@
 /*
   Экстренная мобильная полировка перед показом.
-  Главное: меню, нижняя панель и кнопка пожелания должны работать стабильно.
+  Главное: кнопка «Добавить пожелание» открывает форму в модальном окне.
 */
 (function () {
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiOYwnD7aozxYFzox4JokcHIZjR-OD7FUXcn16n0YqH1gdHoWqgqYXy2CmIJaiN9o/exec";
@@ -14,11 +14,91 @@
   }
 
   function loadStyle() {
-    if ($('link[href="styles-mobile-polish.css"]')) return;
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "styles-mobile-polish.css";
-    document.head.appendChild(link);
+    if (!$('link[href="styles-mobile-polish.css"]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "styles-mobile-polish.css";
+      document.head.appendChild(link);
+    }
+
+    if ($("#feedbackModalEmergencyStyles")) return;
+    const style = document.createElement("style");
+    style.id = "feedbackModalEmergencyStyles";
+    style.textContent = `
+      body.feedback-modal-open { overflow: hidden !important; }
+      .feedback-modal-backdrop {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 99999 !important;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(15, 23, 42, .42);
+        backdrop-filter: blur(12px);
+      }
+      .feedback-modal-backdrop.is-open { display: flex !important; }
+      .feedback-modal-card {
+        width: min(680px, 100%);
+        max-height: min(760px, calc(100vh - 36px));
+        overflow: auto;
+        border-radius: 28px;
+        background: #fff;
+        box-shadow: 0 32px 90px rgba(15, 23, 42, .28);
+        border: 1px solid rgba(226, 232, 240, .95);
+      }
+      .feedback-modal-head {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px 18px 12px;
+        background: rgba(255,255,255,.96);
+        border-bottom: 1px solid rgba(226, 232, 240, .9);
+        backdrop-filter: blur(10px);
+      }
+      .feedback-modal-head h2 { margin: 0; font-size: 22px; line-height: 1.1; color: #0f172a; }
+      .feedback-modal-head p { margin: 4px 0 0; color: #64748b; font-size: 13px; line-height: 1.35; }
+      .feedback-modal-close {
+        width: 44px; height: 44px; min-width: 44px;
+        border: 1px solid #dfe6ef; border-radius: 16px;
+        background: #fff; color: #0f172a; font-size: 28px; line-height: 1;
+        display: grid; place-items: center; cursor: pointer;
+      }
+      .feedback-modal-form { display: grid; gap: 12px; padding: 16px 18px 18px; }
+      .feedback-modal-form label { display: grid; gap: 7px; font-weight: 900; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: .02em; }
+      .feedback-modal-form input,
+      .feedback-modal-form select,
+      .feedback-modal-form textarea {
+        width: 100%; box-sizing: border-box;
+        border: 1px solid #dfe6ef; border-radius: 16px;
+        padding: 13px 14px; background: #fff; color: #0f172a;
+        font: inherit; font-size: 16px; line-height: 1.35; outline: none;
+      }
+      .feedback-modal-form textarea { min-height: 132px; resize: vertical; }
+      .feedback-modal-form input:focus,
+      .feedback-modal-form select:focus,
+      .feedback-modal-form textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, .12); }
+      .feedback-modal-actions { display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; margin-top: 4px; }
+      .feedback-modal-actions button {
+        min-height: 52px; border-radius: 18px; padding: 0 14px; font-weight: 950; font-size: 15px; cursor: pointer;
+      }
+      .feedback-modal-cancel { border: 1px solid #dfe6ef; background: #fff; color: #0f172a; }
+      .feedback-modal-submit { border: 1px solid #1d4ed8; background: #1d4ed8; color: #fff; }
+      .feedback-modal-submit:disabled { opacity: .68; cursor: wait; }
+      @media (max-width: 760px) {
+        .feedback-modal-backdrop { align-items: stretch; justify-content: stretch; padding: 0; }
+        .feedback-modal-card { width: 100%; max-height: none; height: 100%; border-radius: 0; border: 0; }
+        .feedback-modal-head { padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 12px; }
+        .feedback-modal-form { padding: 14px 16px calc(18px + env(safe-area-inset-bottom, 0px)); }
+        .feedback-modal-actions { grid-template-columns: 1fr; }
+        .feedback-modal-actions button { min-height: 54px; }
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   function toast(message, isError) {
@@ -85,72 +165,99 @@
   }
 
   function isFeedbackButton(node) {
-    const control = node?.closest?.("a, button, [role='button']");
+    const control = node?.closest?.("a, button, [role='button'], [data-mobile-action]");
     if (!control) return null;
     const label = cleanText(control.textContent).toLowerCase();
     const href = control.getAttribute("href") || "";
     const action = control.dataset?.mobileAction || "";
+    const aria = cleanText(control.getAttribute("aria-label") || "").toLowerCase();
+    const title = cleanText(control.getAttribute("title") || "").toLowerCase();
+    const combined = `${label} ${aria} ${title}`;
     if (action === "feedback") return control;
     if (control.classList?.contains("mobile-add-feedback-button")) return control;
-    if (href === "#nts" && /пожел|нтс|добав|остав/.test(label)) return control;
-    if (/пожел|добавить/.test(label) && !/скопировать/.test(label)) return control;
+    if (href === "#nts" && /пожел|нтс|добав|остав/.test(combined)) return control;
+    if (/(^|\s)(пожелание|пожелания|пожеланий)($|\s)/.test(combined)) return control;
+    if (/добавить/.test(combined) && /пожел/.test(combined)) return control;
     return null;
   }
 
   function markFeedbackButtons() {
     Array.from(document.querySelectorAll("a, button, [role='button']")).forEach((node) => {
       const label = cleanText(node.textContent).toLowerCase();
+      const aria = cleanText(node.getAttribute?.("aria-label") || "").toLowerCase();
       const href = node.getAttribute?.("href") || "";
-      if ((/пожел|добавить/.test(label) && !/скопировать/.test(label)) || href === "#nts") {
+      const combined = `${label} ${aria}`;
+      if ((/пожел/.test(combined) && !/скопировать/.test(combined)) || href === "#nts") {
         node.classList.add("mobile-add-feedback-button");
         node.dataset.mobileAction = "feedback";
-        if (cleanText(node.textContent).length > 14 && /пожел/.test(label)) node.textContent = "Пожелание";
+        node.setAttribute("aria-label", "Добавить пожелание НТС");
       }
     });
   }
 
-  function ensureFallbackForm() {
-    const existing = $("#ntsForm") || $("#ntsFeedbackForm") || $("#showcaseQuickFeedbackForm");
-    if (existing) return existing;
+  function ensureFeedbackModal() {
+    let modal = $("#feedbackModalEmergency");
+    if (modal) return modal;
 
-    const section = document.createElement("section");
-    section.className = "section showcase-quick-feedback";
-    section.id = "showcaseQuickFeedback";
-    section.innerHTML = `
-      <div class="section-title compact"><div><p class="eyebrow">НТС</p><h2>Добавить пожелание</h2></div></div>
-      <form class="feedback-form" id="showcaseQuickFeedbackForm">
-        <label><span>ФИО</span><input name="author" required placeholder="ФИО"></label>
-        <label><span>Роль</span><input name="role" placeholder="член НТС, эксперт"></label>
-        <label><span>Проект</span><input name="project" placeholder="Ко всему портфелю"></label>
-        <label><span>Приоритет</span><select name="priority"><option value="средний">средний</option><option value="высокий">высокий</option><option value="критический">критический</option></select></label>
-        <label class="wide"><span>Пожелание</span><textarea name="message" rows="5" required placeholder="Напишите пожелание, замечание, риск или вопрос"></textarea></label>
-        <button class="button primary wide" type="submit">Отправить пожелание</button>
-      </form>
+    modal = document.createElement("div");
+    modal.id = "feedbackModalEmergency";
+    modal.className = "feedback-modal-backdrop";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.innerHTML = `
+      <div class="feedback-modal-card">
+        <div class="feedback-modal-head">
+          <div>
+            <h2>Добавить пожелание НТС</h2>
+            <p>Заполните форму. После отправки окно закроется автоматически.</p>
+          </div>
+          <button class="feedback-modal-close" type="button" aria-label="Закрыть форму">×</button>
+        </div>
+        <form class="feedback-modal-form" id="feedbackModalEmergencyForm">
+          <label><span>ФИО</span><input name="author" required placeholder="Фамилия Имя Отчество"></label>
+          <label><span>Роль / статус</span><input name="role" placeholder="член НТС, эксперт, руководитель"></label>
+          <label><span>Проект</span><input name="project" placeholder="Ко всему портфелю или название проекта"></label>
+          <label><span>Тип</span><select name="type"><option value="пожелание">пожелание</option><option value="замечание">замечание</option><option value="риск">риск</option><option value="идея">идея</option><option value="вопрос">вопрос</option><option value="решение НТС">решение НТС</option></select></label>
+          <label><span>Приоритет</span><select name="priority"><option value="средний">средний</option><option value="низкий">низкий</option><option value="высокий">высокий</option><option value="критический">критический</option></select></label>
+          <label><span>Текст пожелания</span><textarea name="message" required placeholder="Напишите пожелание, замечание, риск, идею или вопрос"></textarea></label>
+          <div class="feedback-modal-actions">
+            <button class="feedback-modal-cancel" type="button">Закрыть</button>
+            <button class="feedback-modal-submit" type="submit">Отправить пожелание</button>
+          </div>
+        </form>
+      </div>
     `;
-    (document.querySelector("main") || document.body).appendChild(section);
-    return section.querySelector("form");
+    document.body.appendChild(modal);
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal || event.target.closest(".feedback-modal-close, .feedback-modal-cancel")) closeFeedbackModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && modal.classList.contains("is-open")) closeFeedbackModal();
+    });
+    modal.querySelector("form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      submitForm(event.currentTarget, true);
+    }, true);
+
+    return modal;
   }
 
-  function openFeedbackForm() {
-    const form = ensureFallbackForm();
-    const section = $("#nts") || $("#nts-feedback") || form.closest("section") || document.body;
-    document.body.classList.add("showcase-feedback-open");
-    section.hidden = false;
-    form.hidden = false;
-    section.style.display = "";
-    form.style.display = "";
-    section.classList.add("showcase-form-highlight");
-    form.classList.add("showcase-form-highlight");
+  function openFeedbackModal() {
+    loadStyle();
+    const modal = ensureFeedbackModal();
     closeMenu();
-    setTimeout(() => {
-      section.scrollIntoView({ behavior: "smooth", block: "start" });
-      setTimeout(() => form.querySelector("input, textarea, select")?.focus({ preventScroll: true }), 360);
-      toast("Форма пожелания открыта");
-    }, 60);
-    setTimeout(() => {
-      section.classList.remove("showcase-form-highlight");
-      form.classList.remove("showcase-form-highlight");
-    }, 2400);
+    document.body.classList.add("feedback-modal-open");
+    modal.classList.add("is-open");
+    setTimeout(() => modal.querySelector("input, textarea, select")?.focus({ preventScroll: true }), 120);
+  }
+
+  function closeFeedbackModal() {
+    const modal = $("#feedbackModalEmergency");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    document.body.classList.remove("feedback-modal-open");
   }
 
   function attachFeedbackClick() {
@@ -162,11 +269,11 @@
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
-      openFeedbackForm();
+      openFeedbackModal();
     }, true);
   }
 
-  async function submitForm(form) {
+  async function submitForm(form, closeAfter) {
     if (!form.reportValidity()) return;
     const submit = form.querySelector('button[type="submit"]');
     if (submit) {
@@ -176,12 +283,13 @@
     }
     const data = new FormData(form);
     data.set("formKey", "NTS_TECHNOPARK_2026");
-    data.set("source", "mobile_emergency");
+    data.set("source", "feedback_modal");
     data.set("status", "новое");
     data.set("createdAt", new Date().toISOString());
     try {
       await fetch(SCRIPT_URL, { method: "POST", body: data, mode: "no-cors" });
       form.reset();
+      if (closeAfter) closeFeedbackModal();
       toast("Пожелание отправлено");
       setTimeout(() => document.querySelector("#refreshData, #refreshSheet, #refresh")?.click(), 1200);
     } catch (error) {
@@ -202,7 +310,7 @@
       form.addEventListener("submit", (event) => {
         event.preventDefault();
         event.stopImmediatePropagation();
-        submitForm(form);
+        submitForm(form, false);
       }, true);
     });
   }
