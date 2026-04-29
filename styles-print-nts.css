@@ -1,13 +1,100 @@
 /*
-  Печатная версия для заседания НТС.
+  Печатная версия и предпросмотр для заседания НТС.
 */
 
-.print-meta {
+.print-meta,
+.nts-preview-banner {
   display: none;
 }
 
 .print-nts-button {
   color: var(--blue) !important;
+}
+
+body.nts-preview-mode .nts-preview-banner {
+  position: sticky;
+  top: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid var(--line);
+  padding: 12px clamp(14px, 3vw, 28px);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(12px);
+}
+
+.nts-preview-banner strong,
+.nts-preview-banner span {
+  display: block;
+}
+
+.nts-preview-banner strong {
+  font-size: 14px;
+}
+
+.nts-preview-banner span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.nts-preview-banner > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.nts-preview-banner button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 12px;
+  background: #fff;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.nts-preview-banner button:first-child {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
+.nts-preview-banner button:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+body.nts-preview-mode .topbar,
+body.nts-preview-mode .toolbar,
+body.nts-preview-mode #projects,
+body.nts-preview-mode #quality,
+body.nts-preview-mode #ownerLoad,
+body.nts-preview-mode #funnel,
+body.nts-preview-mode #grants,
+body.nts-preview-mode #dashboardAudit,
+body.nts-preview-mode #deployStatus,
+body.nts-preview-mode #dataMap,
+body.nts-preview-mode .feedback-form {
+  display: none !important;
+}
+
+body.nts-preview-mode #leaderBrief,
+body.nts-preview-mode #ntsReadinessPanel,
+body.nts-preview-mode #controlCenter,
+body.nts-preview-mode #nts {
+  display: block !important;
 }
 
 @media print {
@@ -60,6 +147,7 @@
   body.print-nts-mode .toolbar,
   body.print-nts-mode .sticky-kpi-bar,
   body.print-nts-mode .view-mode-switcher,
+  body.print-nts-mode .nts-preview-banner,
   body.print-nts-mode #projects,
   body.print-nts-mode #quality,
   body.print-nts-mode #ownerLoad,
@@ -156,5 +244,17 @@
     border-color: #d1d5db !important;
     background: #fff !important;
     color: #111827 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body.nts-preview-mode .nts-preview-banner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .nts-preview-banner > div:last-child,
+  .nts-preview-banner button {
+    width: 100%;
   }
 }
