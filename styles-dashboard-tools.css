@@ -1,7 +1,48 @@
 /*
   Дополнительные управленческие элементы для компактной панели:
-  быстрые фильтры, счетчик найденных проектов, печать повестки НТС.
+  быстрые фильтры, счетчик найденных проектов, печать повестки НТС,
+  копирование сводки, CSV-экспорт и пульс портфеля.
 */
+
+.dashboard-copy-button,
+.dashboard-export-button {
+  min-width: 72px;
+}
+
+.portfolio-pulse {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0 0;
+}
+
+.portfolio-pulse article {
+  display: grid;
+  gap: 6px;
+  min-height: 96px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.portfolio-pulse span,
+.portfolio-pulse small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.portfolio-pulse span {
+  text-transform: uppercase;
+}
+
+.portfolio-pulse strong {
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
 
 .quick-filters {
   display: flex;
@@ -93,6 +134,9 @@
   .quick-filters,
   .project-tools,
   .section-actions,
+  .portfolio-pulse,
+  .dashboard-copy-button,
+  .dashboard-export-button,
   #projects,
   #quality,
   #funnel,
@@ -113,7 +157,17 @@
   }
 }
 
+@media (max-width: 1180px) {
+  .portfolio-pulse {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 760px) {
+  .portfolio-pulse {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .quick-filters {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -130,5 +184,11 @@
   .project-tool-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .portfolio-pulse {
+    grid-template-columns: 1fr;
   }
 }
