@@ -23,7 +23,13 @@
 
 ## 2. Публичный сайт
 
-Адрес сайта:
+Адрес рабочей копии для показа:
+
+```text
+https://amailab.github.io/Technopark_project/
+```
+
+Исходная опубликованная версия STEP3DLab:
 
 ```text
 https://step3dlab.github.io/Technopark_project/
@@ -32,18 +38,20 @@ https://step3dlab.github.io/Technopark_project/
 Если изменения не видны, откройте сайт с параметром версии:
 
 ```text
-https://step3dlab.github.io/Technopark_project/?v=final-v1
+https://amailab.github.io/Technopark_project/?v=demo-fallback
 ```
 
 ---
 
 ## 3. Источник данных
 
-Основная Google Таблица:
+Основная Google Таблица сейчас остаётся исходной:
 
 ```text
 https://docs.google.com/spreadsheets/d/1cNN4cPE1F1dlewJCelJPGUR5EkYUmQyJGb_BOKN4n60/edit
 ```
+
+Для устойчивого показа в копии добавлен локальный fallback `data/fallback-dashboard.json`: если Google Sheets временно недоступна, панель покажет демо-копию данных из экспортов XLSX/CSV.
 
 Важно:
 

@@ -9,6 +9,7 @@ const CONFIG = {
   sheets: { projects: "150570752", grants: "1500721586", nts: "202604270" },
   sheetUrl: "https://docs.google.com/spreadsheets/d/1cNN4cPE1F1dlewJCelJPGUR5EkYUmQyJGb_BOKN4n60/edit",
   scriptUrl: "https://script.google.com/macros/s/AKfycbwzbWEjEpb1ySylb--7VhqEHvaC05WB5jhcw-8xpAj811bIJurVB3CW-ElDsoeKnWOA/exec",
+  fallbackUrl: "data/fallback-dashboard.json",
   formKey: "NTS_TECHNOPARK_2026",
   juneStart: "2026-06-01",
 };
@@ -151,6 +152,18 @@ function loadSheet(gid, requiredWords = ["проект"]) {
     script.src = `https://docs.google.com/spreadsheets/d/${CONFIG.sheetId}/gviz/tq?gid=${gid}&headers=0&tqx=responseHandler:${callback}&cacheBust=${Date.now()}`;
     document.head.append(script);
   });
+}
+
+async function loadFallbackData() {
+  const response = await fetch(`${CONFIG.fallbackUrl}?cacheBust=${Date.now()}`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Локальная демо-копия данных недоступна");
+  const data = await response.json();
+  return {
+    projects: (data.projects || []).map(normalizeProject).filter((project) => project.name && project.name !== "без названия"),
+    grants: (data.grants || []).map(normalizeGrant).filter((grant) => grant.route),
+    feedback: (data.feedback || []).map(normalizeFeedback).filter((item) => item.message || item.author || item.project).reverse(),
+    generatedAt: data.generatedAt || "",
+  };
 }
 
 const cache = {
@@ -535,17 +548,48 @@ async function loadData(force = false) {
       loadSheet(CONFIG.sheets.grants, ["маршрут", "оператор"]),
       loadSheet(CONFIG.sheets.nts, ["фио", "сообщение"]),
     ]);
+    const googleErrors = [projectsResult, grantsResult, feedbackResult]
+      .filter((result) => result.status === "rejected")
+      .map((result) => result.reason?.message || "ошибка загрузки");
+
     if (projectsResult.status === "fulfilled") state.projects = projectsResult.value.map(normalizeProject).filter((project) => project.name && project.name !== "без названия");
     if (grantsResult.status === "fulfilled") state.grants = grantsResult.value.map(normalizeGrant).filter((grant) => grant.route);
     if (feedbackResult.status === "fulfilled") state.feedback = feedbackResult.value.map(normalizeFeedback).filter((item) => item.message || item.author || item.project).reverse();
+
+    if (!state.projects.length) {
+      const fallback = await loadFallbackData();
+      state.projects = fallback.projects;
+      if (!state.grants.length) state.grants = fallback.grants;
+      if (!state.feedback.length) state.feedback = fallback.feedback;
+      cache.save("dashboard", { projects: state.projects, grants: state.grants, feedback: state.feedback });
+      renderAll();
+      setUpdatedNow();
+      setSync(`Демо-режим: показана локальная копия данных${fallback.generatedAt ? ` от ${fallback.generatedAt}` : ""}. Google Sheets можно подключить позже.`, "ok");
+      if (googleErrors.length) console.warn("Google Sheets недоступен, включен fallback", googleErrors);
+      return;
+    }
+
     cache.save("dashboard", { projects: state.projects, grants: state.grants, feedback: state.feedback });
     renderAll();
     setUpdatedNow();
-    setSync("Данные синхронизированы с Google Таблицей.", "ok");
+    setSync(googleErrors.length ? "Данные частично синхронизированы; недоступные листы заменены кешем/пустым состоянием." : "Данные синхронизированы с Google Таблицей.", "ok");
   } catch (error) {
     console.error(error);
-    setSync("Не удалось загрузить данные. Проверьте доступ к Google Таблице.", "error");
-    showToast("Не удалось загрузить данные", "error");
+    try {
+      const fallback = await loadFallbackData();
+      state.projects = fallback.projects;
+      state.grants = fallback.grants;
+      state.feedback = fallback.feedback;
+      cache.save("dashboard", { projects: state.projects, grants: state.grants, feedback: state.feedback });
+      renderAll();
+      setUpdatedNow();
+      setSync("Демо-режим: Google Sheets недоступен, показана локальная копия данных.", "ok");
+      showToast("Включен демо-режим с локальной копией данных");
+    } catch (fallbackError) {
+      console.error(fallbackError);
+      setSync("Не удалось загрузить данные. Проверьте доступ к Google Таблице.", "error");
+      showToast("Не удалось загрузить данные", "error");
+    }
   }
 }
 
