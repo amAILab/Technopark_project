@@ -15,12 +15,12 @@
   <div class="page-progress" id="pageProgress" aria-hidden="true"></div>
   <header class="site-header" aria-label="Навигация">
     <a class="brand" href="#top"><span class="brand-dot"></span>Технопарк РГСУ</a>
-    <nav aria-label="Разделы"><a href="#workbench">Сводка</a><a href="#passports">Паспорта</a><a href="#portfolio">Проекты</a><a href="#nts">НТС</a></nav>
+    <nav aria-label="Разделы" class="tab-nav"><a href="#top" data-tab-link="start">Старт</a><a href="#table" data-tab-link="table">Таблица</a><a href="#assistant" data-tab-link="assistant">Чат</a><a href="#passports" data-tab-link="passports">Паспорта</a></nav>
     <a class="header-cta" href="index-legacy-dashboard.html" title="Открыть старую расширенную панель со всеми инструментами">Расширенная</a>
   </header>
 
   <main id="top" class="app-shell">
-    <section class="hero compact-hero" aria-labelledby="hero-title">
+    <section class="hero compact-hero tab-section" id="start" data-tab="start" aria-labelledby="hero-title">
       <p class="hero-eyebrow">Управление портфелем</p>
       <h1 id="hero-title">Все проекты Технопарка — на одном ясном экране.</h1>
       <p class="hero-copy">Смотрите решения недели, готовность к грантам, риски и повестку НТС без перегруженной админки.</p>
@@ -29,7 +29,7 @@
     </section>
 
 
-    <section class="assistant-chat-panel" aria-labelledby="assistant-chat-title">
+    <section class="assistant-chat-panel tab-section" id="assistant" data-tab="assistant" aria-labelledby="assistant-chat-title">
       <div>
         <p>AI-ассистент</p>
         <h2 id="assistant-chat-title">Задайте вопрос по проектам прямо сейчас</h2>
@@ -43,7 +43,7 @@
       </form>
     </section>
 
-    <section class="control-deck" id="workbench" aria-label="Рабочая сводка">
+    <section class="control-deck tab-section" id="workbench" data-tab="start" aria-label="Рабочая сводка">
       <div class="deck-head">
         <div><p>Сводка</p><h2>Что важно сейчас</h2></div>
         <div class="deck-actions" role="tablist" aria-label="Фильтр портфеля"><button class="chip is-active" type="button" data-filter="all">Все</button><button class="chip" type="button" data-filter="risk">Риски</button><button class="chip" type="button" data-filter="ready">Гранты</button></div>
@@ -61,18 +61,18 @@
     </section>
 
 
-    <section class="portfolio-section" id="passports" aria-labelledby="passports-title">
+    <section class="portfolio-section tab-section" id="passports" data-tab="passports" aria-labelledby="passports-title">
       <div class="portfolio-head"><div><p>Паспорта</p><h2 id="passports-title">Паспорта проектов</h2></div><a class="text-button" href="docs/project_passports_template.csv" download>Скачать CSV-шаблон</a></div>
       <div class="passport-grid" id="passportGrid"></div>
     </section>
 
-    <section class="portfolio-section" id="portfolio" aria-labelledby="portfolio-title">
+    <section class="portfolio-section tab-section" id="portfolio" data-tab="table" aria-labelledby="portfolio-title">
       <div class="portfolio-head"><div><p>Портфель</p><h2 id="portfolio-title">41 проект</h2></div><div class="portfolio-controls"><label class="search"><span>Поиск</span><input id="searchInputOpenai" type="search" placeholder="Проект, ответственный, грант"></label><select class="sort-select" id="sortSelect" aria-label="Сортировка проектов"><option value="risk">Сначала риски</option><option value="ready">Сначала готовые</option><option value="name">По названию</option></select></div></div>
       <div class="project-tools-line"><span id="projectCountLabel">Показаны все проекты</span><div class="project-tools-actions"><button class="text-button" type="button" id="copySummary">Копировать сводку</button><button class="text-button" type="button" id="clearSearch">Сбросить</button></div></div>
-      <div class="project-list" id="projectList"></div>
+      <div class="project-list table-view" id="projectList"></div>
     </section>
 
-    <section class="portfolio-section" id="nts" aria-labelledby="nts-title">
+    <section class="portfolio-section tab-section" id="nts" data-tab="table" aria-labelledby="nts-title">
       <div class="portfolio-head"><div><p>НТС</p><h2 id="nts-title">Повестка к обсуждению</h2></div></div>
       <div class="nts-list" id="ntsList"></div>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -87,5 +87,17 @@
     <span class="telegram-widget__icon">✦</span>
     <span><b>Обсудить с ассистентом</b><small>Telegram · быстрый вопрос</small></span>
   </a>
+
+  <dialog class="edit-dialog" id="editDialog">
+    <form method="dialog" class="edit-card" id="editForm">
+      <button class="dialog-close" value="cancel" aria-label="Закрыть">×</button>
+      <p>Правка проекта</p>
+      <h2 id="editProjectTitle">Проект</h2>
+      <label><span>Что изменить / подтвердить</span><textarea id="editText" rows="4" placeholder="Например: назначить ответственного, обновить статус, добавить решение НТС"></textarea></label>
+      <label><span>Пароль подтверждения</span><input id="editPassword" type="password" placeholder="Введите пароль"></label>
+      <div class="edit-note">Сейчас это preview: правка сохраняется локально в браузере и готовится для будущей записи в Google Sheets.</div>
+      <div class="edit-actions"><button class="button" value="cancel">Отмена</button><button class="button primary" id="confirmEdit" value="default">Подтвердить</button></div>
+    </form>
+  </dialog>
 </body>
 </html>
