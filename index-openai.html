@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Проекты Технопарка РГСУ — executive view</title>
+  <meta name="description" content="Чистая executive-панель 41 проекта Технопарка РГСУ: решения недели, грантовая готовность, НТС и портфель.">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="canonical" href="https://amailab.github.io/Technopark_project/index-openai.html">
+  <link rel="icon" href="logo-technopark-sculpture.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles-openai.css">
+</head>
+<body>
+  <a class="skip-link" href="#decisions">Перейти к решениям</a>
+
+  <header class="site-header" aria-label="Навигация">
+    <a class="brand" href="#top">Технопарк РГСУ</a>
+    <nav aria-label="Разделы">
+      <a href="#decisions">Решения</a>
+      <a href="#portfolio">Портфель</a>
+      <a href="#nts">НТС</a>
+    </nav>
+    <a class="header-cta" href="index.html">Полная панель</a>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <p class="hero-eyebrow">Панель проектного портфеля</p>
+      <h1 id="hero-title">41 проект. Одна управленческая картина.</h1>
+      <p class="hero-copy">Сводка для руководителя: что решить на этой неделе, какие проекты готовы к грантам и что вынести на НТС.</p>
+      <div class="hero-actions">
+        <a class="button primary" href="#decisions">Смотреть решения</a>
+        <a class="button" href="#portfolio">Открыть портфель</a>
+      </div>
+    </section>
+
+    <section class="metrics" aria-label="Ключевые показатели">
+      <article><span>Проекты</span><strong id="metricTotal">41</strong></article>
+      <article><span>Требуют решения</span><strong id="metricActions">—</strong></article>
+      <article><span>Готовы к грантам</span><strong id="metricReady">—</strong></article>
+      <article><span>К НТС</span><strong id="metricNts">—</strong></article>
+    </section>
+
+    <section class="section" id="decisions" aria-labelledby="decisions-title">
+      <div class="section-head">
+        <p>Главное</p>
+        <h2 id="decisions-title">5 решений недели</h2>
+        <span>Сформировано из рисков, сроков и незаполненных управленческих полей.</span>
+      </div>
+      <div class="decision-grid" id="decisionGrid"></div>
+    </section>
+
+    <section class="split-section" aria-label="Гранты и качество данных">
+      <article class="insight-card">
+        <div class="section-head mini"><p>Финансирование</p><h2>Готовы к упаковке</h2></div>
+        <div class="compact-list" id="readyList"></div>
+      </article>
+      <article class="insight-card">
+        <div class="section-head mini"><p>Реестр</p><h2>Что мешает управлению</h2></div>
+        <div class="compact-list" id="gapListOpenai"></div>
+      </article>
+    </section>
+
+    <section class="section" id="portfolio" aria-labelledby="portfolio-title">
+      <div class="section-head row">
+        <div><p>Портфель</p><h2 id="portfolio-title">Проекты</h2></div>
+        <label class="search"><span>Поиск</span><input id="searchInputOpenai" type="search" placeholder="Название, ответственный, грант"></label>
+      </div>
+      <div class="project-list" id="projectList"></div>
+    </section>
+
+    <section class="section" id="nts" aria-labelledby="nts-title">
+      <div class="section-head">
+        <p>Научно-технический совет</p>
+        <h2 id="nts-title">Повестка НТС</h2>
+        <span>Проекты с рисками и управленческими решениями для обсуждения.</span>
+      </div>
+      <div class="nts-list" id="ntsList"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>Executive preview · данные из fallback-dashboard.json</span>
+    <a href="index.html">Вернуться в полную панель</a>
+  </footer>
+
+  <script src="app-openai.js"></script>
+</body>
+</html>
