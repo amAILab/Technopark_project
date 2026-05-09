@@ -272,3 +272,148 @@ textarea {
   .showcase-strip, .executive-snapshot__grid, .kpi-grid { grid-template-columns: 1fr; }
   .toolbar { top: 76px; }
 }
+
+/* Fix pass after screenshot: remove layered/sticky feeling and normalize legacy widgets. */
+.topbar {
+  position: relative;
+  top: auto;
+  margin-top: 14px;
+}
+
+main { padding-top: 18px; padding-bottom: 120px; }
+
+.overview-head { margin-top: 6px; }
+.overview-head > div { padding-top: clamp(30px, 5vw, 58px); padding-bottom: clamp(26px, 4vw, 46px); }
+
+.main-nav a { white-space: nowrap; }
+.main-nav a[href="#quality"] { max-width: 118px; overflow: hidden; text-overflow: ellipsis; }
+
+.header-actions { gap: 6px; }
+.header-actions .button.primary { min-width: auto; padding-inline: 14px; }
+
+.tools-menu-panel {
+  width: 260px;
+  border-color: #e1d8c9;
+  border-radius: 22px;
+  padding: 10px;
+  background: #fffdf8;
+  box-shadow: 0 18px 44px rgba(44, 38, 27, .12);
+}
+
+.tools-menu-item,
+.quick-filter-button,
+.small-tool-button,
+.dashboard-copy-button,
+.dashboard-export-button,
+.section-actions .button,
+.project-tool-actions .button,
+.project-tool-actions button {
+  min-height: 38px !important;
+  border: 1px solid #ddd2bf !important;
+  border-radius: 999px !important;
+  background: #fffaf0 !important;
+  color: #2b281f !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 780 !important;
+}
+
+.tools-menu-item:hover,
+.quick-filter-button:hover,
+.small-tool-button:hover,
+.dashboard-copy-button:hover,
+.dashboard-export-button:hover,
+.section-actions .button:hover,
+.project-tool-actions .button:hover,
+.project-tool-actions button:hover {
+  border-color: #1d1b16 !important;
+  background: #eee8dc !important;
+  color: #1d1b16 !important;
+}
+
+.project-tools,
+.quick-filters,
+.view-mode-switcher,
+.data-load-state,
+.active-filter-panel {
+  border: 1px solid #e2d8c8 !important;
+  border-radius: 24px !important;
+  background: rgba(255, 253, 248, .76) !important;
+  box-shadow: none !important;
+}
+
+.view-mode-switcher {
+  padding: 14px !important;
+  gap: 12px !important;
+}
+
+.view-mode-switcher button,
+.view-mode-button {
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+.nts-readiness-panel,
+.leader-brief,
+.leader-decision,
+.control-panel,
+.inside-control-center,
+.dashboard-audit,
+.owner-load,
+.deploy-status,
+.data-map,
+.week-plan,
+.risk-matrix {
+  border-radius: 28px !important;
+  border-color: rgba(217, 207, 190, .86) !important;
+  background: rgba(255, 253, 248, .78) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.nts-readiness-score,
+.readiness-score,
+.big-score {
+  font-size: clamp(42px, 7vw, 78px) !important;
+  letter-spacing: -.07em !important;
+}
+
+.sticky-kpi-bar {
+  left: 50% !important;
+  right: auto !important;
+  bottom: 16px !important;
+  transform: translateX(-50%) !important;
+  width: min(760px, calc(100% - 28px)) !important;
+  border: 1px solid rgba(225, 216, 201, .9) !important;
+  border-radius: 999px !important;
+  padding: 8px 10px !important;
+  background: rgba(255, 253, 248, .92) !important;
+  box-shadow: 0 14px 38px rgba(44, 38, 27, .12) !important;
+  backdrop-filter: blur(18px);
+}
+
+.sticky-kpi-bar span,
+.sticky-kpi-bar b,
+.sticky-kpi-bar button {
+  font-size: 12px !important;
+  white-space: nowrap;
+}
+
+.sticky-kpi-bar button {
+  min-height: 30px !important;
+  border-radius: 999px !important;
+  border-color: #ddd2bf !important;
+  background: #fffaf0 !important;
+  color: #1d1b16 !important;
+}
+
+@media (max-width: 1180px) {
+  .topbar { grid-template-columns: 1fr auto; }
+  .main-nav { order: 3; grid-column: 1 / -1; width: 100%; overflow-x: auto; justify-content: flex-start; padding-bottom: 2px; }
+  .main-nav::-webkit-scrollbar { display: none; }
+}
+
+@media (max-width: 720px) {
+  main { padding-bottom: 150px; }
+  .sticky-kpi-bar { border-radius: 24px !important; display: grid !important; grid-template-columns: repeat(2, minmax(0,1fr)) !important; gap: 6px !important; }
+  .sticky-kpi-bar span:first-child { grid-column: 1 / -1; }
+}
