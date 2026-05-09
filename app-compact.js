@@ -41,6 +41,7 @@ const els = {
   syncDot: $("#syncDot"), syncStatus: $("#syncStatus"), lastUpdated: $("#lastUpdated"), refreshData: $("#refreshData"),
   menuToggle: $("#menuToggle"), mainNav: $("#mainNav"), navLinks: $$(".main-nav a"),
   kpiTotal: $("#kpiTotal"), kpiActive: $("#kpiActive"), kpiReady: $("#kpiReady"), kpiRisks: $("#kpiRisks"), kpiFeedback: $("#kpiFeedback"),
+  leaderTopDecisions: $("#leaderTopDecisions"),
   actionBoard: $("#actionBoard"), qualityGrid: $("#qualityGrid"), gapList: $("#gapList"),
   searchInput: $("#searchInput"), statusFilter: $("#statusFilter"), ownerFilter: $("#ownerFilter"), readinessFilter: $("#readinessFilter"), riskFilter: $("#riskFilter"),
   projectTable: $("#projectTable"), grantGrid: $("#grantGrid"), funnelBoard: $("#funnelBoard"), funnelDetails: $("#funnelDetails"),
@@ -368,6 +369,21 @@ function buildActionItems() {
   }).filter(Boolean).sort((a, b) => a.priority - b.priority || daysUntil(a.project.deadline) - daysUntil(b.project.deadline));
 }
 
+function renderLeaderTopDecisions() {
+  if (!els.leaderTopDecisions) return;
+  const items = buildActionItems().slice(0, 5);
+  if (!items.length) {
+    els.leaderTopDecisions.innerHTML = `<div class="empty-state"><strong>Срочных решений нет</strong><span>По текущим данным критические управленческие действия не выявлены.</span></div>`;
+    return;
+  }
+  els.leaderTopDecisions.innerHTML = items.map((item, index) => `<article class="leader-decision-card ${item.severity}">
+    <span class="leader-decision-card__number">${index + 1}</span>
+    <div><strong>${escapeHtml(item.project.name)}</strong><small>${escapeHtml(item.project.owner || "ответственный не указан")}</small></div>
+    <p>${escapeHtml(item.action)}</p>
+    <footer><span class="badge ${item.severity === "critical" ? "danger" : item.severity === "high" ? "warn" : "neutral"}">${escapeHtml(item.label)}</span><span>${escapeHtml(formatDate(item.project.deadline))}</span></footer>
+  </article>`).join("");
+}
+
 function renderActions() {
   const items = buildActionItems();
   if (!items.length) {
@@ -530,6 +546,7 @@ function renderFeedbackFeed() {
 function renderAll() {
   renderKpi();
   renderFilters();
+  renderLeaderTopDecisions();
   renderActions();
   renderProjects();
   renderQuality();
