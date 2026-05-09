@@ -33,11 +33,13 @@
       <div>
         <p>AI-ассистент</p>
         <h2 id="assistant-chat-title">Задайте вопрос по проектам прямо сейчас</h2>
-        <span>Напишите вопрос, а сайт подготовит переход в Telegram-бота. Ответ придёт там — это честный режим без неподключённого backend.</span>
+        <span>После подключения webhook вопрос уйдёт ассистенту в Telegram, ответ вернётся на сайт после подтверждения. Пока webhook не задан — откроется Telegram-бот.</span>
       </div>
       <form class="assistant-chat-form" id="assistantChatForm">
         <label><span>Ваш вопрос</span><textarea id="assistantQuestion" rows="3" placeholder="Например: какие проекты срочно вынести на НТС?"></textarea></label>
-        <button class="button primary" type="submit">Открыть чат с Клешней</button>
+        <div class="assistant-chat-actions"><button class="button primary" type="submit">Задать вопрос</button><a class="text-button" href="https://t.me/openclaw_step3d_bot" target="_blank" rel="noopener noreferrer">Открыть Telegram</a></div>
+        <div class="assistant-chat-status" id="assistantChatStatus">Webhook не подключён: включён безопасный Telegram-режим.</div>
+        <div class="assistant-answer" id="assistantAnswer" hidden></div>
       </form>
     </section>
 
