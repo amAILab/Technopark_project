@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: technopark-assistant-chat-proxy
+    env: node
+    rootDir: backend/assistant-chat-proxy
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: ALLOWED_ORIGIN
+        value: https://amailab.github.io
+      - key: OWNER_CHAT_ID
+        value: "7260915527"
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false

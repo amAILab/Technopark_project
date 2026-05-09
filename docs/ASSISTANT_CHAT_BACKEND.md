@@ -57,3 +57,35 @@ window.TECHNOPARK_ASSISTANT_WEBHOOK = "https://your-chat-proxy.example.com/api/a
 ## Current fallback
 
 Until backend URL is configured, the site opens `@openclaw_step3d_bot` and copies the question to clipboard.
+
+## Added deploy files
+
+This repo now includes:
+
+- `backend/assistant-chat-proxy/Dockerfile` — container deploy.
+- `backend/assistant-chat-proxy/railway.json` — Railway deploy config.
+- `render.yaml` — Render blueprint.
+- `assistant-chat-config.js` — frontend webhook config placeholder.
+
+## Minimal launch checklist
+
+1. Deploy `backend/assistant-chat-proxy`.
+2. Set env vars:
+   - `TELEGRAM_BOT_TOKEN`
+   - `OWNER_CHAT_ID=7260915527`
+   - `ALLOWED_ORIGIN=https://amailab.github.io`
+   - `PUBLIC_BASE_URL=https://<deployed-backend>`
+3. Set Telegram webhook:
+
+```bash
+curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  -d "url=$PUBLIC_BASE_URL/api/telegram-webhook"
+```
+
+4. Update `assistant-chat-config.js`:
+
+```js
+window.TECHNOPARK_ASSISTANT_WEBHOOK = "https://<deployed-backend>/api/assistant-question";
+```
+
+5. Commit/push config without secrets.
