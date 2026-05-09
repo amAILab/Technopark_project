@@ -1,0 +1,274 @@
+/* Ollama-inspired calm product UI for Technopark dashboard: warm paper, black ink, soft cards. */
+:root {
+  --bg: #f7f4ee;
+  --surface: #fffdf8;
+  --surface-soft: #f1ede3;
+  --surface-blue: #f4efe4;
+  --text: #1d1b16;
+  --muted: #706b60;
+  --line: #e5ded0;
+  --line-strong: #d4cab8;
+  --blue: #1f1d18;
+  --blue-soft: #eee8dc;
+  --green: #2f7d4f;
+  --green-soft: #eaf5ed;
+  --yellow: #9a6a1e;
+  --yellow-soft: #fff2d7;
+  --red: #a64237;
+  --red-soft: #fff0ec;
+  --gray: #625d52;
+  --shadow: 0 18px 50px rgba(44, 38, 27, 0.08);
+  --radius: 28px;
+  --radius-sm: 18px;
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+html,
+body {
+  background:
+    radial-gradient(circle at 50% -20%, rgba(255,255,255,.9), transparent 34rem),
+    linear-gradient(180deg, #faf8f3 0%, #f4efe6 100%);
+}
+
+body { letter-spacing: -0.01em; }
+
+.topbar {
+  top: 14px;
+  width: min(1180px, calc(100% - 28px));
+  margin: 0 auto;
+  grid-template-columns: auto 1fr auto;
+  border: 1px solid rgba(229, 222, 208, .86);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, .82);
+  box-shadow: 0 14px 34px rgba(44, 38, 27, .08);
+}
+
+.brand img {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.brand strong { font-size: 14px; font-weight: 850; }
+.brand small { display: none; }
+
+.main-nav {
+  border: 0;
+  background: transparent;
+  gap: 2px;
+}
+
+.main-nav a {
+  color: #6f6a5f;
+  font-weight: 720;
+  padding: 8px 10px;
+}
+
+.main-nav a:hover,
+.main-nav a:focus-visible,
+.main-nav a.is-active {
+  color: #1d1b16;
+  background: #eee8dc;
+}
+
+.header-actions .button.ghost { display: none; }
+
+.button {
+  min-height: 42px;
+  border-color: #dcd3c2;
+  background: rgba(255,255,255,.72);
+  box-shadow: none;
+  font-weight: 820;
+}
+
+.button:hover { background: #f1eadf; }
+
+.button.primary {
+  border-color: #1d1b16;
+  background: #1d1b16;
+  color: #fffaf0;
+}
+
+.button.primary:hover { background: #343027; }
+
+main {
+  width: min(1180px, calc(100% - 28px));
+  padding-top: 42px;
+}
+
+.overview { gap: 20px; }
+
+.overview-head {
+  grid-template-columns: minmax(0, 1fr);
+  text-align: center;
+  justify-items: center;
+  margin: 28px auto 0;
+}
+
+.overview-head > div {
+  width: min(920px, 100%);
+  padding: clamp(34px, 7vw, 78px) clamp(18px, 5vw, 58px);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.eyebrow {
+  color: #82796a;
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-transform: none;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(48px, 9vw, 104px);
+  line-height: .9;
+  letter-spacing: -.075em;
+  font-weight: 860;
+}
+
+.subhead {
+  max-width: 760px;
+  margin: 24px auto 0;
+  color: #5f5a50;
+  font-size: clamp(18px, 2.1vw, 25px);
+  line-height: 1.35;
+}
+
+.hero-actions,
+.technopark-hero-actions {
+  justify-content: center;
+  margin-top: 28px;
+  gap: 10px;
+}
+
+.sync-card {
+  width: min(740px, 100%);
+  margin: -18px auto 0;
+  border-radius: 22px;
+  box-shadow: none;
+}
+
+.showcase-strip,
+.demo-route,
+.executive-snapshot,
+.leader-top-decisions,
+.section,
+.toolbar,
+.table-card,
+.panel,
+.feedback-form,
+.kpi-card,
+.quality-card,
+.funnel-details,
+.grant-line {
+  border-color: rgba(217, 207, 190, .86) !important;
+  border-radius: 28px !important;
+  background: rgba(255, 253, 248, .78) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.showcase-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 12px;
+  padding: 12px;
+}
+
+.showcase-strip article {
+  border: 0;
+  border-radius: 22px;
+  background: #f3eee4;
+}
+
+.demo-route { padding: clamp(20px, 3vw, 34px); }
+.demo-route h2,
+.section-title h2,
+.executive-snapshot__head h2,
+.leader-top-decisions h2 { letter-spacing: -.045em; }
+
+.executive-snapshot { margin-top: 0; }
+.executive-card {
+  border: 1px solid #e6dece;
+  border-radius: 24px;
+  background: #fffaf0;
+}
+.executive-card.danger,
+.executive-card.warn,
+.executive-card.good { border-top-width: 1px; }
+.executive-card li { background: #f3eee4; }
+
+.kpi-grid { gap: 12px; }
+.kpi-card { padding: 22px; }
+.kpi-card strong { letter-spacing: -.06em; }
+
+.section,
+.toolbar { margin-top: 22px; }
+.section { padding: clamp(20px, 3vw, 34px); }
+.section-title.compact { align-items: end; }
+.section-title p { color: var(--muted); }
+
+.toolbar {
+  position: sticky;
+  top: 92px;
+  z-index: 20;
+  padding: 12px;
+  backdrop-filter: blur(18px);
+}
+
+.toolbar label {
+  border-radius: 18px;
+  background: #f6f1e8;
+}
+
+input,
+select,
+textarea {
+  border-color: #ded4c2 !important;
+  border-radius: 16px !important;
+  background: #fffdf8 !important;
+}
+
+.action-table,
+.projects-table { border-radius: 22px; overflow: hidden; }
+.action-row,
+.projects-table th,
+.projects-table td { border-color: #e9e0d1; }
+.projects-table th { color: #82796a; background: #f3eee4; }
+.project-detail { background: #f7f2e9; }
+
+.badge {
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.04);
+  font-weight: 800;
+}
+
+.funnel-step {
+  border-color: #e1d8c9;
+  border-radius: 22px;
+  background: #fffdf8;
+}
+.funnel-step.is-active { background: #1d1b16; color: #fffaf0; }
+
+.toast { border-radius: 999px; background: #1d1b16; color: #fffaf0; }
+
+@media (max-width: 1100px) {
+  .topbar { grid-template-columns: 1fr auto; border-radius: 24px; }
+  .main-nav { justify-content: flex-start; }
+  .showcase-strip { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
+@media (max-width: 720px) {
+  .topbar { top: 8px; width: calc(100% - 16px); padding: 10px 12px; }
+  .brand strong { max-width: 170px; overflow: hidden; text-overflow: ellipsis; }
+  main { width: min(100% - 16px, 1180px); padding-top: 22px; }
+  h1 { font-size: clamp(44px, 16vw, 72px); }
+  .overview-head > div { padding: 38px 8px 26px; }
+  .subhead { font-size: 17px; }
+  .hero-actions { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .showcase-strip, .executive-snapshot__grid, .kpi-grid { grid-template-columns: 1fr; }
+  .toolbar { top: 76px; }
+}
