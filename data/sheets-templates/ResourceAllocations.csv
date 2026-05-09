@@ -1,0 +1,2 @@
+﻿allocation_id,week,person_id,project_id,role,task,hours,status
+ALLOC-001,2026-W20,PER-001,PRJ-001,разработчик,прототип интерфейса,4,план

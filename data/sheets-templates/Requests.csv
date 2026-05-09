@@ -1,0 +1,2 @@
+﻿request_id,created_at,name,email,telegram,category,type,project_id,lab,text,nts_required,status
+REQ-001,2026-05-09T14:20:00,Иванов И.И.,ivanov@example.com,@ivanov,студент,вопрос для обсуждения на НТС,PRJ-001,ИИ,Предлагаю обсудить проект на НТС,TRUE,новый

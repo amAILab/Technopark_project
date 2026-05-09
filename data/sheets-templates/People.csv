@@ -1,0 +1,2 @@
+﻿person_id,name,category,email,telegram,competencies,lab,hours_total_week,hours_busy_week,hours_free_week,availability,comment,status
+PER-001,Иванов И.И.,студент,ivanov@example.com,@ivanov,"Python, дизайн",Компьютерная наука и ИИ,10,4,=H2-I2,вт/чт после 15:00,пример строки,активен
