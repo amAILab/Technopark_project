@@ -331,6 +331,59 @@ h3 {
   line-height: 1.35;
 }
 
+.demo-route {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.75fr) minmax(0, 1.25fr);
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #0f172a, #173a7a);
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+
+.demo-route h2 {
+  color: #fff;
+}
+
+.demo-route .eyebrow {
+  color: #bfdbfe;
+}
+
+.demo-route ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.demo-route li {
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.demo-route b,
+.demo-route span {
+  display: block;
+}
+
+.demo-route b {
+  color: #bfdbfe;
+  font-size: 13px;
+}
+
+.demo-route span {
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .sync-card {
   display: grid;
   gap: 14px;
@@ -1158,6 +1211,11 @@ td small {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .demo-route,
+  .demo-route ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .stage-projects {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1246,6 +1304,11 @@ td small {
 
   .showcase-strip article {
     min-height: 0;
+  }
+
+  .demo-route,
+  .demo-route ol {
+    grid-template-columns: 1fr;
   }
 
   .overview-head > div,
