@@ -81,6 +81,14 @@ function toIsoDate(value) {
   const raw = String(value).trim();
   const gviz = raw.match(/^Date\((\d+),(\d+),(\d+)\)$/);
   if (gviz) return `${gviz[1]}-${String(Number(gviz[2]) + 1).padStart(2, "0")}-${String(gviz[3]).padStart(2, "0")}`;
+  const serial = raw.match(/^\d+(?:\.0+)?$/);
+  if (serial) {
+    const days = Number.parseInt(serial[0], 10);
+    if (days > 20000 && days < 60000) {
+      const date = new Date(Date.UTC(1899, 11, 30 + days));
+      return date.toISOString().slice(0, 10);
+    }
+  }
   if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
   const match = raw.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})/);
   if (!match) return "";
@@ -556,23 +564,43 @@ async function loadData(force = false) {
     if (grantsResult.status === "fulfilled") state.grants = grantsResult.value.map(normalizeGrant).filter((grant) => grant.route);
     if (feedbackResult.status === "fulfilled") state.feedback = feedbackResult.value.map(normalizeFeedback).filter((item) => item.message || item.author || item.project).reverse();
 
+    let fallback = null;
+    const getFallback = async () => {
+      if (!fallback) fallback = await loadFallbackData();
+      return fallback;
+    };
+
     if (!state.projects.length) {
-      const fallback = await loadFallbackData();
-      state.projects = fallback.projects;
-      if (!state.grants.length) state.grants = fallback.grants;
-      if (!state.feedback.length) state.feedback = fallback.feedback;
+      const fallbackData = await getFallback();
+      state.projects = fallbackData.projects;
+      if (!state.grants.length) state.grants = fallbackData.grants;
+      if (!state.feedback.length) state.feedback = fallbackData.feedback;
       cache.save("dashboard", { projects: state.projects, grants: state.grants, feedback: state.feedback });
       renderAll();
       setUpdatedNow();
-      setSync(`Демо-режим: показана локальная копия данных${fallback.generatedAt ? ` от ${fallback.generatedAt}` : ""}. Google Sheets можно подключить позже.`, "ok");
+      setSync(`Демо-режим: показана локальная копия данных${fallbackData.generatedAt ? ` от ${fallbackData.generatedAt}` : ""}. Google Sheets можно подключить позже.`, "ok");
       if (googleErrors.length) console.warn("Google Sheets недоступен, включен fallback", googleErrors);
       return;
+    }
+
+    const fallbackReasons = [];
+    if (!state.grants.length) {
+      state.grants = (await getFallback()).grants;
+      fallbackReasons.push("грантовые маршруты");
+    }
+    if (!state.feedback.length) {
+      state.feedback = (await getFallback()).feedback;
+      fallbackReasons.push("пожелания НТС");
     }
 
     cache.save("dashboard", { projects: state.projects, grants: state.grants, feedback: state.feedback });
     renderAll();
     setUpdatedNow();
-    setSync(googleErrors.length ? "Данные частично синхронизированы; недоступные листы заменены кешем/пустым состоянием." : "Данные синхронизированы с Google Таблицей.", "ok");
+    if (fallbackReasons.length) {
+      setSync(`Данные частично синхронизированы; ${fallbackReasons.join(" и ")} показаны из локальной демо-копии.`, "ok");
+    } else {
+      setSync(googleErrors.length ? "Данные частично синхронизированы; часть листов Google Sheets временно недоступна." : "Данные синхронизированы с Google Таблицей.", "ok");
+    }
   } catch (error) {
     console.error(error);
     try {

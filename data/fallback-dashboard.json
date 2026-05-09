@@ -1113,6 +1113,6 @@
       "Служебный ключ": ""
     }
   ],
-  "generatedAt": "2026-05-09T00:35:00+03:00",
-  "source": "local CSV export from source XLSX/ODS backup; demo fallback for GitHub Pages copy"
+  "generatedAt": "2026-05-09T10:05:00+03:00",
+  "source": "data/exported_csv snapshot for GitHub Pages demo fallback"
 }
