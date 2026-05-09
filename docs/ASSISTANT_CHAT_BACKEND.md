@@ -2,51 +2,57 @@
 
 Goal: site → backend → Telegram/OpenClaw assistant → owner confirmation → answer visible on site.
 
-## Why backend is required
+GitHub Pages is static. It cannot securely store Telegram bot tokens, receive Telegram webhooks, or push confirmed answers back to a browser by itself. Tokens must live only on the backend.
 
-GitHub Pages is static. It cannot securely store Telegram bot tokens, receive Telegram webhooks, or push confirmed answers back to a browser by itself.
+## What is included
 
-Do **not** expose Telegram bot token in frontend JavaScript.
+`backend/assistant-chat-proxy/` contains a minimal Node/Express proxy:
 
-## Frontend contract
+- `POST /api/assistant-question` — receives a question from the site and forwards it to Telegram owner chat.
+- `GET /api/assistant-answer/:id` — frontend polls this endpoint until an answer appears.
+- `POST /api/telegram-webhook` — Telegram webhook. Owner can answer with `/answer_<id> text`.
+- `GET /health` — health check.
 
-If `window.TECHNOPARK_ASSISTANT_WEBHOOK` is set, `app-openai.js` sends:
+## Environment variables
 
-```json
-{
-  "source": "technopark_site",
-  "question": "user text",
-  "page": "https://...",
-  "createdAt": "ISO timestamp"
-}
+```bash
+TELEGRAM_BOT_TOKEN=...
+OWNER_CHAT_ID=7260915527
+ALLOWED_ORIGIN=https://amailab.github.io
+PUBLIC_BASE_URL=https://your-chat-proxy.example.com
+PORT=8787
 ```
 
-Expected backend response:
+## Deploy outline
 
-```json
-{
-  "status": "pending",
-  "requestId": "abc123",
-  "message": "Вопрос отправлен ассистенту. Ответ появится после подтверждения."
-}
+1. Deploy `backend/assistant-chat-proxy` to Railway/Render/Fly/VPS.
+2. Set environment variables.
+3. Register Telegram webhook:
+
+```bash
+curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  -d "url=$PUBLIC_BASE_URL/api/telegram-webhook"
 ```
 
-Optional immediate answer:
+4. Copy `assistant-chat-config.example.js` to `assistant-chat-config.js` and set:
 
-```json
-{
-  "status": "answered",
-  "answer": "..."
-}
+```js
+window.TECHNOPARK_ASSISTANT_WEBHOOK = "https://your-chat-proxy.example.com/api/assistant-question";
 ```
 
-## Recommended backend flow
+5. Include `assistant-chat-config.js` before `app-openai.js` on the page, or inject it during deployment.
 
-1. Receive question from site.
-2. Send it to Telegram bot / OpenClaw session as an approval request.
-3. Store request by `requestId`.
-4. After owner confirmation in Telegram, store approved answer.
-5. Provide polling endpoint or SSE/WebSocket so site can fetch answer.
+## Owner workflow
+
+1. Visitor asks a question on the site.
+2. Backend sends Telegram message to owner chat with request ID.
+3. Owner replies in Telegram:
+
+```text
+/answer_ab12cd34ef Здесь текст ответа для сайта
+```
+
+4. Site polling receives the answer and shows it in the chat panel.
 
 ## Current fallback
 

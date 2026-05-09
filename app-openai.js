@@ -22,4 +22,28 @@ window.addEventListener('scroll',updateChrome,{passive:true});window.addEventLis
 
 els.sort?.addEventListener('change',renderProjects);function showToast(t){if(!els.toast)return;els.toast.textContent=t;els.toast.classList.add('is-visible');clearTimeout(showToast.t);showToast.t=setTimeout(()=>els.toast.classList.remove('is-visible'),2200)}els.copy?.addEventListener('click',async()=>{const text=`Технопарк РГСУ: ${projects.length} проектов; требуют решения: ${projects.filter(p=>issues(p).length).length}; готовы к грантам: ${projects.filter(p=>p.readiness>=70).length}.`;try{await navigator.clipboard.writeText(text);showToast('Сводка скопирована')}catch{showToast(text)}});
 
-const assistantForm=document.querySelector('#assistantChatForm');const assistantQuestion=document.querySelector('#assistantQuestion');const assistantStatus=document.querySelector('#assistantChatStatus');const assistantAnswer=document.querySelector('#assistantAnswer');function setAssistantStatus(text,type=''){if(!assistantStatus)return;assistantStatus.textContent=text;assistantStatus.className=`assistant-chat-status ${type?`is-${type}`:''}`.trim()}assistantForm?.addEventListener('submit',async(event)=>{event.preventDefault();const text=(assistantQuestion?.value||'').trim();if(!text){setAssistantStatus('Напишите вопрос перед отправкой.','error');return}const webhook=window.TECHNOPARK_ASSISTANT_WEBHOOK;if(webhook){try{setAssistantStatus('Отправляю вопрос ассистенту…','loading');const response=await fetch(webhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source:'technopark_site',question:text,page:location.href,createdAt:new Date().toISOString()})});if(!response.ok)throw new Error(`HTTP ${response.status}`);const data=await response.json().catch(()=>({}));if(data.answer){assistantAnswer.hidden=false;assistantAnswer.textContent=data.answer;setAssistantStatus('Ответ получен и показан на сайте.','ok')}else{setAssistantStatus(data.message||`Вопрос отправлен. ID: ${data.requestId||'pending'}. Ответ появится после подтверждения в Telegram.`,'ok')}return}catch(error){setAssistantStatus('Webhook не ответил. Открою Telegram-бота как резервный канал.','error')}}const prefix='Вопрос по панели проектов Технопарка РГСУ:';navigator.clipboard?.writeText(`${prefix} ${text}`).catch(()=>{});showToast('Вопрос скопирован. Вставьте его в Telegram-боте.');window.open('https://t.me/openclaw_step3d_bot','_blank','noopener,noreferrer');});
+const assistantForm=document.querySelector('#assistantChatForm');const assistantQuestion=document.querySelector('#assistantQuestion');const assistantStatus=document.querySelector('#assistantChatStatus');const assistantAnswer=document.querySelector('#assistantAnswer');function setAssistantStatus(text,type=''){if(!assistantStatus)return;assistantStatus.textContent=text;assistantStatus.className=`assistant-chat-status ${type?`is-${type}`:''}`.trim()}assistantForm?.addEventListener('submit',async(event)=>{event.preventDefault();const text=(assistantQuestion?.value||'').trim();if(!text){setAssistantStatus('Напишите вопрос перед отправкой.','error');return}const webhook=window.TECHNOPARK_ASSISTANT_WEBHOOK;if(webhook){try{setAssistantStatus('Отправляю вопрос ассистенту…','loading');const response=await fetch(webhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source:'technopark_site',question:text,page:location.href,createdAt:new Date().toISOString()})});if(!response.ok)throw new Error(`HTTP ${response.status}`);const data=await response.json().catch(()=>({}));if(data.answer){assistantAnswer.hidden=false;assistantAnswer.textContent=data.answer;setAssistantStatus('Ответ получен и показан на сайте.','ok')}else{setAssistantStatus(data.message||`Вопрос отправлен. ID: ${data.requestId||'pending'}. Жду подтверждённый ответ…`,'ok');if(data.requestId)pollAssistantAnswer(data.requestId, data.pollUrl)}return}catch(error){setAssistantStatus('Webhook не ответил. Открою Telegram-бота как резервный канал.','error')}}const prefix='Вопрос по панели проектов Технопарка РГСУ:';navigator.clipboard?.writeText(`${prefix} ${text}`).catch(()=>{});showToast('Вопрос скопирован. Вставьте его в Telegram-боте.');window.open('https://t.me/openclaw_step3d_bot','_blank','noopener,noreferrer');});
+
+async function pollAssistantAnswer(requestId,pollUrl){
+  const url=pollUrl||`${window.TECHNOPARK_ASSISTANT_WEBHOOK.replace(/\/api\/assistant-question\/?$/,'')}/api/assistant-answer/${requestId}`;
+  let attempts=0;
+  const timer=setInterval(async()=>{
+    attempts+=1;
+    try{
+      const response=await fetch(url,{cache:'no-store'});
+      if(!response.ok)throw new Error(`HTTP ${response.status}`);
+      const data=await response.json();
+      if(data.status==='answered'&&data.answer){
+        clearInterval(timer);
+        assistantAnswer.hidden=false;
+        assistantAnswer.textContent=data.answer;
+        setAssistantStatus('Ответ подтверждён и показан на сайте.','ok');
+      }else if(attempts%4===0){
+        setAssistantStatus(`Вопрос отправлен. Ожидаю ответ… (${attempts*5} сек)`,'loading');
+      }
+    }catch(error){
+      if(attempts>3)setAssistantStatus('Пока не удаётся получить ответ. Проверьте Telegram или backend.','error');
+    }
+    if(attempts>=60){clearInterval(timer);setAssistantStatus('Ожидание ответа истекло. Проверьте Telegram-бота.','error')}
+  },5000);
+}
