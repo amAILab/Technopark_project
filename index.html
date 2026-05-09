@@ -19,11 +19,12 @@
     <a class="header-cta" href="index-legacy-dashboard.html" title="Открыть старую расширенную панель со всеми инструментами">Расширенная</a>
   </header>
 
-  <main id="top">
+  <main id="top" class="app-shell">
     <section class="hero compact-hero" aria-labelledby="hero-title">
       <p class="hero-eyebrow">Управление портфелем</p>
       <h1 id="hero-title">Все проекты Технопарка — на одном ясном экране.</h1>
       <p class="hero-copy">Смотрите решения недели, готовность к грантам, риски и повестку НТС без перегруженной админки.</p>
+      <div class="hero-status" id="heroStatus">Данные загружаются…</div>
       <div class="hero-meta" aria-label="Ключевые режимы"><span>Executive view</span><span>41 проект</span><span>НТС и гранты</span></div>
     </section>
 
@@ -39,20 +40,21 @@
         <article><span>НТС</span><strong id="metricNts">—</strong></article>
       </div>
       <div class="workbench-grid">
-        <section class="primary-panel" aria-labelledby="decisions-title"><div class="panel-title"><p>Главное</p><h3 id="decisions-title">5 решений недели</h3></div><div class="decision-list" id="decisionGrid"></div></section>
+        <section class="primary-panel" aria-labelledby="decisions-title"><div class="panel-title"><p>Главное</p><h3 id="decisions-title">5 решений недели</h3><span class="panel-hint">по рискам и срокам</span></div><div class="decision-list" id="decisionGrid"></div></section>
         <aside class="side-stack"><section class="mini-panel"><div class="panel-title"><p>Гранты</p><h3>Готовы к упаковке</h3></div><div class="compact-list" id="readyList"></div></section><section class="mini-panel"><div class="panel-title"><p>Реестр</p><h3>Пробелы</h3></div><div class="compact-list" id="gapListOpenai"></div></section></aside>
       </div>
     </section>
 
     <section class="portfolio-section" id="portfolio" aria-labelledby="portfolio-title">
-      <div class="portfolio-head"><div><p>Портфель</p><h2 id="portfolio-title">41 проект</h2></div><label class="search"><span>Поиск</span><input id="searchInputOpenai" type="search" placeholder="Проект, ответственный, грант"></label></div>
-      <div class="project-tools-line"><span id="projectCountLabel">Показаны все проекты</span><button class="text-button" type="button" id="clearSearch">Сбросить</button></div>
+      <div class="portfolio-head"><div><p>Портфель</p><h2 id="portfolio-title">41 проект</h2></div><div class="portfolio-controls"><label class="search"><span>Поиск</span><input id="searchInputOpenai" type="search" placeholder="Проект, ответственный, грант"></label><select class="sort-select" id="sortSelect" aria-label="Сортировка проектов"><option value="risk">Сначала риски</option><option value="ready">Сначала готовые</option><option value="name">По названию</option></select></div></div>
+      <div class="project-tools-line"><span id="projectCountLabel">Показаны все проекты</span><div class="project-tools-actions"><button class="text-button" type="button" id="copySummary">Копировать сводку</button><button class="text-button" type="button" id="clearSearch">Сбросить</button></div></div>
       <div class="project-list" id="projectList"></div>
     </section>
 
     <section class="portfolio-section" id="nts" aria-labelledby="nts-title">
       <div class="portfolio-head"><div><p>НТС</p><h2 id="nts-title">Повестка к обсуждению</h2></div></div>
       <div class="nts-list" id="ntsList"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
   </main>
 
