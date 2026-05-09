@@ -12,10 +12,11 @@
 </head>
 <body>
   <a class="skip-link" href="#workbench">Перейти к панели</a>
+  <div class="page-progress" id="pageProgress" aria-hidden="true"></div>
   <header class="site-header" aria-label="Навигация">
-    <a class="brand" href="#top">Технопарк РГСУ</a>
+    <a class="brand" href="#top"><span class="brand-dot"></span>Технопарк РГСУ</a>
     <nav aria-label="Разделы"><a href="#workbench">Сводка</a><a href="#portfolio">Проекты</a><a href="#nts">НТС</a></nav>
-    <a class="header-cta" href="index-legacy-dashboard.html">Расширенная</a>
+    <a class="header-cta" href="index-legacy-dashboard.html" title="Открыть старую расширенную панель со всеми инструментами">Расширенная</a>
   </header>
 
   <main id="top">
@@ -23,12 +24,13 @@
       <p class="hero-eyebrow">Управление портфелем</p>
       <h1 id="hero-title">Все проекты Технопарка — на одном ясном экране.</h1>
       <p class="hero-copy">Смотрите решения недели, готовность к грантам, риски и повестку НТС без перегруженной админки.</p>
+      <div class="hero-meta" aria-label="Ключевые режимы"><span>Executive view</span><span>41 проект</span><span>НТС и гранты</span></div>
     </section>
 
     <section class="control-deck" id="workbench" aria-label="Рабочая сводка">
       <div class="deck-head">
         <div><p>Сводка</p><h2>Что важно сейчас</h2></div>
-        <div class="deck-actions"><button class="chip is-active" type="button" data-filter="all">Все</button><button class="chip" type="button" data-filter="risk">Риски</button><button class="chip" type="button" data-filter="ready">Гранты</button></div>
+        <div class="deck-actions" role="tablist" aria-label="Фильтр портфеля"><button class="chip is-active" type="button" data-filter="all">Все</button><button class="chip" type="button" data-filter="risk">Риски</button><button class="chip" type="button" data-filter="ready">Гранты</button></div>
       </div>
       <div class="metrics compact" aria-label="Ключевые показатели">
         <article><span>Проекты</span><strong id="metricTotal">41</strong></article>
@@ -44,6 +46,7 @@
 
     <section class="portfolio-section" id="portfolio" aria-labelledby="portfolio-title">
       <div class="portfolio-head"><div><p>Портфель</p><h2 id="portfolio-title">41 проект</h2></div><label class="search"><span>Поиск</span><input id="searchInputOpenai" type="search" placeholder="Проект, ответственный, грант"></label></div>
+      <div class="project-tools-line"><span id="projectCountLabel">Показаны все проекты</span><button class="text-button" type="button" id="clearSearch">Сбросить</button></div>
       <div class="project-list" id="projectList"></div>
     </section>
 
@@ -53,7 +56,7 @@
     </section>
   </main>
 
-  <footer class="site-footer"><span>Основная компактная панель · fallback-dashboard.json</span><a href="index-legacy-dashboard.html">Legacy-панель со всеми инструментами</a></footer>
+  <footer class="site-footer"><span>Основная компактная панель · fallback-dashboard.json</span><div><a href="#top">Наверх</a><a href="index-legacy-dashboard.html">Legacy-панель</a></div></footer>
   <script src="app-openai.js"></script>
 </body>
 </html>
