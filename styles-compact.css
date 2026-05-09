@@ -294,6 +294,43 @@ h3 {
   line-height: 1.55;
 }
 
+.technopark-hero-actions {
+  margin-top: 18px;
+}
+
+.showcase-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.showcase-strip article {
+  min-height: 108px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fff, #f8fbff);
+  box-shadow: var(--shadow-soft);
+}
+
+.showcase-strip b,
+.showcase-strip span {
+  display: block;
+}
+
+.showcase-strip b {
+  color: var(--blue-dark);
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+
+.showcase-strip span {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 .sync-card {
   display: grid;
   gap: 14px;
@@ -1117,6 +1154,10 @@ td small {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .showcase-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .stage-projects {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1197,6 +1238,14 @@ td small {
 
   .overview-head {
     grid-template-columns: 1fr;
+  }
+
+  .showcase-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .showcase-strip article {
+    min-height: 0;
   }
 
   .overview-head > div,
