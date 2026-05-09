@@ -41,7 +41,7 @@ const els = {
   syncDot: $("#syncDot"), syncStatus: $("#syncStatus"), lastUpdated: $("#lastUpdated"), refreshData: $("#refreshData"),
   menuToggle: $("#menuToggle"), mainNav: $("#mainNav"), navLinks: $$(".main-nav a"),
   kpiTotal: $("#kpiTotal"), kpiActive: $("#kpiActive"), kpiReady: $("#kpiReady"), kpiRisks: $("#kpiRisks"), kpiFeedback: $("#kpiFeedback"),
-  leaderTopDecisions: $("#leaderTopDecisions"),
+  leaderTopDecisions: $("#leaderTopDecisions"), executiveSnapshot: $("#executiveSnapshot"),
   actionBoard: $("#actionBoard"), qualityGrid: $("#qualityGrid"), gapList: $("#gapList"),
   searchInput: $("#searchInput"), statusFilter: $("#statusFilter"), ownerFilter: $("#ownerFilter"), readinessFilter: $("#readinessFilter"), riskFilter: $("#riskFilter"),
   projectTable: $("#projectTable"), grantGrid: $("#grantGrid"), funnelBoard: $("#funnelBoard"), funnelDetails: $("#funnelDetails"),
@@ -369,6 +369,27 @@ function buildActionItems() {
   }).filter(Boolean).sort((a, b) => a.priority - b.priority || daysUntil(a.project.deadline) - daysUntil(b.project.deadline));
 }
 
+function renderExecutiveSnapshot() {
+  if (!els.executiveSnapshot) return;
+  const actions = buildActionItems();
+  const urgent = actions.filter((item) => item.severity === "critical" || item.severity === "high").slice(0, 3);
+  const grantReady = state.projects
+    .filter((project) => project.readiness >= 70 || project.status.includes("готов"))
+    .sort((a, b) => b.readiness - a.readiness)
+    .slice(0, 3);
+  const dataGaps = state.projects
+    .map((project) => ({ project, gaps: [!project.owner && "ответственный", project.explicitReadiness === null && "готовность", !project.grant && "грант", !project.deadline && "срок", !project.nextStep && "следующее действие"].filter(Boolean) }))
+    .filter((item) => item.gaps.length)
+    .sort((a, b) => b.gaps.length - a.gaps.length)
+    .slice(0, 3);
+  const blocks = [
+    { title: "Решить сейчас", tone: "danger", empty: "Критических решений не найдено", rows: urgent.map((item) => ({ name: item.project.name, meta: item.action })) },
+    { title: "Можно упаковывать", tone: "good", empty: "Готовых к упаковке проектов пока нет", rows: grantReady.map((project) => ({ name: project.name, meta: `${project.readiness}% · ${project.grant || "маршрут уточнить"}` })) },
+    { title: "Мешает управлению", tone: "warn", empty: "Ключевые поля заполнены", rows: dataGaps.map((item) => ({ name: item.project.name, meta: `Заполнить: ${item.gaps.join(", ")}` })) },
+  ];
+  els.executiveSnapshot.innerHTML = blocks.map((block) => `<article class="executive-card ${block.tone}"><h3>${escapeHtml(block.title)}</h3>${block.rows.length ? `<ul>${block.rows.map((row) => `<li><strong>${escapeHtml(row.name)}</strong><span>${escapeHtml(row.meta)}</span></li>`).join("")}</ul>` : `<p class="executive-card__empty">${escapeHtml(block.empty)}</p>`}</article>`).join("");
+}
+
 function renderLeaderTopDecisions() {
   if (!els.leaderTopDecisions) return;
   const items = buildActionItems().slice(0, 5);
@@ -547,6 +568,7 @@ function renderAll() {
   renderKpi();
   renderFilters();
   renderLeaderTopDecisions();
+  renderExecutiveSnapshot();
   renderActions();
   renderProjects();
   renderQuality();
