@@ -89,3 +89,15 @@ window.TECHNOPARK_ASSISTANT_WEBHOOK = "https://<deployed-backend>/api/assistant-
 ```
 
 5. Commit/push config without secrets.
+
+## Persistence and admin check
+
+The proxy now stores recent requests in `DATA_DIR/requests.json` so pending answers survive normal process restarts when the hosting volume persists.
+
+Optional admin endpoint:
+
+```bash
+curl -H "x-admin-token: $ADMIN_TOKEN" "$PUBLIC_BASE_URL/api/assistant-requests"
+```
+
+Set `ADMIN_TOKEN` to protect the endpoint. If it is not set, the endpoint is open on the backend URL, so set it for production.

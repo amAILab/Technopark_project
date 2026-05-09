@@ -1,5 +1,7 @@
 import express from 'express';
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const app = express();
 app.use(express.json({ limit: '64kb' }));
@@ -10,7 +12,21 @@ const OWNER_CHAT_ID = process.env.OWNER_CHAT_ID;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://amailab.github.io';
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || '';
 
-const requests = new Map();
+const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data');
+const DATA_FILE = path.join(DATA_DIR, 'requests.json');
+function loadRequests() {
+  try {
+    const rows = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    return new Map(rows.map((row) => [row.id, row]));
+  } catch {
+    return new Map();
+  }
+}
+function saveRequests() {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(DATA_FILE, JSON.stringify([...requests.values()].slice(-500), null, 2));
+}
+const requests = loadRequests();
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
@@ -45,7 +61,15 @@ async function sendTelegram(text) {
 }
 
 app.get('/health', (req, res) => {
-  res.json({ ok: true, service: 'technopark-assistant-chat-proxy' });
+  res.json({ ok: true, service: 'technopark-assistant-chat-proxy', storedRequests: requests.size });
+});
+
+app.get('/api/assistant-requests', (req, res) => {
+  const token = req.get('x-admin-token');
+  if (process.env.ADMIN_TOKEN && token !== process.env.ADMIN_TOKEN) return res.sendStatus(403);
+  res.json([...requests.values()].slice(-50).reverse().map((row) => ({
+    id: row.id, status: row.status, question: row.question, createdAt: row.createdAt, updatedAt: row.updatedAt || '', error: row.error || ''
+  })));
 });
 
 app.post('/api/assistant-question', async (req, res) => {
@@ -62,6 +86,7 @@ app.post('/api/assistant-question', async (req, res) => {
     answer: '',
   };
   requests.set(id, record);
+  saveRequests();
 
   const approveHint = `/answer_${id} текст ответа`;
   const message = [
@@ -79,6 +104,7 @@ app.post('/api/assistant-question', async (req, res) => {
   } catch (error) {
     record.status = 'telegram_error';
     record.error = String(error.message || error);
+    saveRequests();
   }
 
   res.json({
@@ -113,6 +139,7 @@ app.post('/api/telegram-webhook', async (req, res) => {
   record.status = 'answered';
   record.updatedAt = new Date().toISOString();
   requests.set(id, record);
+  saveRequests();
   await sendTelegram(`✅ Ответ для <code>${id}</code> сохранён и доступен на сайте.`).catch(() => {});
   res.json({ ok: true });
 });
