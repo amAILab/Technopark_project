@@ -15,19 +15,44 @@
   <div class="page-progress" id="pageProgress" aria-hidden="true"></div>
   <header class="site-header" aria-label="Навигация">
     <a class="brand" href="#top"><span class="brand-dot"></span>Технопарк РГСУ</a>
-    <nav aria-label="Разделы" class="tab-nav"><a href="#top" data-tab-link="start">Старт</a><a href="#table" data-tab-link="table">Таблица</a><a href="#assistant" data-tab-link="assistant">Чат</a><a href="#passports" data-tab-link="passports">Паспорта</a></nav>
+    <nav aria-label="Разделы" class="tab-nav"><a href="#top" data-tab-link="start">Главная</a><a href="#resources" data-tab-link="resources">Ресурсы</a><a href="#grants" data-tab-link="grants">Гранты</a><a href="#table" data-tab-link="table">Проекты</a><a href="#nts" data-tab-link="nts">НТС</a></nav>
     <a class="header-cta" href="index-legacy-dashboard.html" title="Открыть старую расширенную панель со всеми инструментами">Расширенная</a>
   </header>
 
   <main id="top" class="app-shell">
     <section class="hero compact-hero tab-section" id="start" data-tab="start" aria-labelledby="hero-title">
       <p class="hero-eyebrow">Управление портфелем</p>
-      <h1 id="hero-title">Все проекты Технопарка — на одном ясном экране.</h1>
-      <p class="hero-copy">Смотрите решения недели, готовность к грантам, риски и повестку НТС без перегруженной админки.</p>
+      <h1 id="hero-title">Проекты Технопарка РГСУ</h1>
+      <p class="hero-copy">Рабочий экран для НТС: проекты, ресурсы, гранты, вопросы, решения и очередь событий для агента.</p>
       <div class="hero-status" id="heroStatus">Данные загружаются…</div>
-      <div class="hero-meta" aria-label="Ключевые режимы"><span>Executive view</span><span>41 проект</span><span>НТС и гранты</span></div>
+      <div class="hero-meta" aria-label="Ключевые режимы"><span>НТС</span><span>41 проект</span><span>Ресурсы и гранты</span><span>AgentQueue</span></div>
     </section>
 
+
+
+    <section class="intake-panel tab-section" id="intake" data-tab="start" aria-labelledby="intake-title">
+      <div class="portfolio-head"><div><p>Единая форма</p><h2 id="intake-title">Подать вопрос, ресурс или решение</h2></div><a class="text-button" href="https://t.me/openclaw_step3d_bot" target="_blank" rel="noopener noreferrer">Telegram-бот</a></div>
+      <form class="intake-form" id="intakeForm">
+        <div class="form-grid">
+          <label><span>ФИО / имя *</span><input name="name" required autocomplete="name" placeholder="Иванов Иван"></label>
+          <label><span>Категория участника *</span><select name="participant" required><option value="">Выберите</option><option>технопарковец</option><option>студент</option><option>сотрудник университета</option><option>партнёр</option><option>волонтёр</option><option>внешний эксперт</option></select></label>
+          <label><span>E-mail *</span><input name="email" type="email" required autocomplete="email" placeholder="name@example.com"></label>
+          <label><span>Telegram-ник *</span><input name="telegram" required placeholder="@username"></label>
+          <label><span>Тип обращения *</span><select name="type" id="intakeType" required><option value="">Выберите</option><option>вопрос по проекту</option><option>пожелание или предложение</option><option>регистрация себя как ресурса</option><option>доступное время на неделю</option><option>вопрос для обсуждения на НТС</option><option>участие в проекте</option><option>иное обращение</option></select></label>
+          <label><span>Проект</span><select name="project" id="intakeProject"><option value="">Ко всему портфелю</option></select></label>
+          <label><span>Лаборатория / направление</span><input name="lab" placeholder="например, 3D, AI, медтех"></label>
+          <label><span>Доступные часы на неделе</span><input name="hours" type="number" min="0" max="80" placeholder="например, 6"></label>
+          <label><span>Дата и время доступности</span><input name="availability" placeholder="вт/чт после 15:00"></label>
+          <label><span>Компетенции</span><input name="skills" placeholder="CAD, дизайн, пайка, Python"></label>
+          <label><span>Желаемая роль</span><input name="role" placeholder="исполнитель, эксперт, куратор"></label>
+          <label><span>Ссылка на материалы</span><input name="link" type="url" placeholder="https://..."></label>
+        </div>
+        <label class="wide-label"><span>Текст обращения *</span><textarea name="message" rows="4" required placeholder="Опишите вопрос, предложение, ресурс, решение или идею для НТС"></textarea></label>
+        <label class="check-line"><input name="toNts" type="checkbox"> <span>Вынести вопрос на НТС</span></label>
+        <button class="button primary" type="submit">Сохранить обращение</button>
+        <div class="assistant-chat-status" id="intakeStatus">MVP: обращение сохраняется локально и готовится к отправке в Google Sheets / AgentQueue.</div>
+      </form>
+    </section>
 
     <section class="assistant-chat-panel tab-section" id="assistant" data-tab="assistant" aria-labelledby="assistant-chat-title">
       <div>
@@ -61,6 +86,22 @@
     </section>
 
 
+
+    <section class="portfolio-section tab-section" id="resources" data-tab="resources" aria-labelledby="resources-title">
+      <div class="portfolio-head"><div><p>Ресурсы</p><h2 id="resources-title">Люди и человеко-часы</h2></div></div>
+      <div class="resource-grid" id="resourceGrid">
+        <article><span>Доступные часы</span><strong id="resourceHours">—</strong><small>по локальным заявкам MVP</small></article>
+        <article><span>Участники</span><strong id="resourcePeople">—</strong><small>заявили ресурс</small></article>
+        <article><span>Компетенции</span><strong id="resourceSkills">—</strong><small>уникальных навыков</small></article>
+      </div>
+      <div class="compact-list" id="resourceList"></div>
+    </section>
+
+    <section class="portfolio-section tab-section" id="grants" data-tab="grants" aria-labelledby="grants-title">
+      <div class="portfolio-head"><div><p>Гранты</p><h2 id="grants-title">Грантовые маршруты</h2></div></div>
+      <div class="compact-list" id="grantRouteList"></div>
+    </section>
+
     <section class="portfolio-section tab-section" id="passports" data-tab="passports" aria-labelledby="passports-title">
       <div class="portfolio-head"><div><p>Паспорта</p><h2 id="passports-title">Паспорта проектов</h2></div><a class="text-button" href="docs/project_passports_template.csv" download>Скачать CSV-шаблон</a></div>
       <div class="passport-grid" id="passportGrid"></div>
@@ -72,7 +113,7 @@
       <div class="project-list table-view" id="projectList"></div>
     </section>
 
-    <section class="portfolio-section tab-section" id="nts" data-tab="table" aria-labelledby="nts-title">
+    <section class="portfolio-section tab-section" id="nts" data-tab="nts" aria-labelledby="nts-title">
       <div class="portfolio-head"><div><p>НТС</p><h2 id="nts-title">Повестка к обсуждению</h2></div></div>
       <div class="nts-list" id="ntsList"></div>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
