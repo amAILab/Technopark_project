@@ -26,6 +26,11 @@
       <p class="hero-copy">Рабочий экран для НТС: проекты, ресурсы, гранты, вопросы, решения и очередь событий для агента.</p>
       <div class="hero-status" id="heroStatus">Данные загружаются…</div>
       <div class="hero-meta" aria-label="Ключевые режимы"><span>НТС</span><span>41 проект</span><span>Ресурсы и гранты</span><span>AgentQueue</span></div>
+      <div class="showcase-strip" aria-label="Сценарий показа проректору">
+        <article><span>1 минута</span><strong>Портфель: сколько проектов, где риски и что решать</strong></article>
+        <article><span>2 минута</span><strong>Гранты и НТС: что можно упаковать к 1 июня</strong></article>
+        <article><span>3 минута</span><strong>Следующий шаг: назначить владельцев и сроки</strong></article>
+      </div>
     </section>
 
 
@@ -137,6 +142,13 @@
   <footer class="site-footer"><span>Основная компактная панель · fallback-dashboard.json</span><div><a href="#top">Наверх</a><a href="index-legacy-dashboard.html">Legacy-панель</a></div></footer>
   <script src="assistant-chat-config.js"></script>
   <script src="app-openai.js"></script>
+
+  <div class="demo-panel" aria-label="Режимы показа">
+    <small>Показ</small>
+    <button type="button" id="demoFocusToggle">Фокус</button>
+    <button type="button" id="projectorToggle">Проектор</button>
+    <button type="button" id="openChecklist">Чек-лист</button>
+  </div>
 
   <a class="telegram-widget" href="https://t.me/openclaw_step3d_bot" target="_blank" rel="noopener noreferrer" aria-label="Открыть Telegram для обсуждения с ассистентом">
     <span class="telegram-widget__icon">✦</span>

@@ -81,3 +81,29 @@ function saveIntakeRows(rows){localStorage.setItem('technopark_intake_rows',JSON
 function renderResources(){const rows=intakeRows().filter(r=>['регистрация себя как ресурса','доступное время на неделю','участие в проекте'].includes(r.type));const hours=rows.reduce((s,r)=>s+(Number(r.hours)||0),0);const skills=[...new Set(rows.flatMap(r=>String(r.skills||'').split(/[,;]/).map(x=>x.trim()).filter(Boolean)))];if(els.resourceHours)els.resourceHours.textContent=hours;if(els.resourcePeople)els.resourcePeople.textContent=rows.length;if(els.resourceSkills)els.resourceSkills.textContent=skills.length;if(els.resourceList)els.resourceList.innerHTML=rows.slice(-8).reverse().map(r=>item(`${r.name||'Без имени'} · ${r.participant||'участник'}`,`${r.skills||'компетенции не указаны'} · ${r.hours||0} ч · ${r.role||'роль уточнить'}`)).join('')||empty('Ресурсы пока не добавлены','Заполните форму на главной: регистрация себя как ресурса или доступное время.')}
 function renderGrants(){if(!els.grantRouteList)return;els.grantRouteList.innerHTML=grants.slice(0,10).map(g=>item(g['Маршрут']||'Маршрут',`${g['Оператор']||''} · ${g['Финансирование']||''}`)).join('')||empty('Гранты не загружены','Проверьте fallback-dashboard.json')}
 els.intakeForm?.addEventListener('submit',(e)=>{e.preventDefault();const data=Object.fromEntries(new FormData(els.intakeForm).entries());data.toNts=els.intakeForm.elements.toNts.checked?'да':'нет';data.createdAt=new Date().toISOString();data.status='new';data.agentQueue='pending';const rows=intakeRows();rows.push(data);saveIntakeRows(rows);els.intakeStatus.textContent='Обращение сохранено локально и поставлено в AgentQueue MVP. После подключения Apps Script уйдёт в Google Sheets.';els.intakeStatus.className='assistant-chat-status is-ok';els.intakeForm.reset();renderResources();showToast('Обращение сохранено')});
+
+
+// Sprint 3 demo controls: reversible, local-only UI modes for projector and prorector showcase.
+const demoFocusToggle=document.querySelector('#demoFocusToggle');
+const projectorToggle=document.querySelector('#projectorToggle');
+const openChecklist=document.querySelector('#openChecklist');
+function setUiMode(name,on){
+  document.documentElement.classList.toggle(name,on);
+  localStorage.setItem(`technopark_${name}`,on?'1':'0');
+}
+function syncDemoButtons(){
+  demoFocusToggle?.classList.toggle('is-active',document.documentElement.classList.contains('focus-mode'));
+  projectorToggle?.classList.toggle('is-active',document.documentElement.classList.contains('projector-mode'));
+}
+['focus-mode','projector-mode'].forEach(name=>{
+  const enabled=new URLSearchParams(location.search).has(name.replace('-mode',''))||localStorage.getItem(`technopark_${name}`)==='1';
+  if(enabled)document.documentElement.classList.add(name);
+});
+syncDemoButtons();
+demoFocusToggle?.addEventListener('click',()=>{setUiMode('focus-mode',!document.documentElement.classList.contains('focus-mode'));syncDemoButtons();showToast(document.documentElement.classList.contains('focus-mode')?'Фокус-режим включён':'Фокус-режим выключен')});
+projectorToggle?.addEventListener('click',()=>{setUiMode('projector-mode',!document.documentElement.classList.contains('projector-mode'));syncDemoButtons();showToast(document.documentElement.classList.contains('projector-mode')?'Проекторный вид включён':'Проекторный вид выключен')});
+openChecklist?.addEventListener('click',()=>window.open('docs/DEMO_SCRIPT.md','_blank','noopener,noreferrer'));
+window.addEventListener('keydown',(e)=>{
+  if(e.altKey&&e.key.toLowerCase()==='p'){e.preventDefault();projectorToggle?.click()}
+  if(e.altKey&&e.key.toLowerCase()==='f'){e.preventDefault();demoFocusToggle?.click()}
+});
